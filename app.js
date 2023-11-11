@@ -138,6 +138,7 @@ const cryptoChart = createCryptoChart(maxX, maxY);
 cryptoChart.x = app.screen.width / 2 - cryptoChart.width / 2;
 cryptoChart.y = app.screen.height / 2 - cryptoChart.height / 2;
 
+
 /* ============= LAYERING ============= */
 app.stage.addChild(cryptoChart);
 app.stage.addChild(sellText);
@@ -206,7 +207,7 @@ function moveRocket() {
     // x-movement
     rocket.x = cryptoChart.x;
     gsap.to(rocket, {
-        x: maxX + 20,
+        x: cryptoChart.x + maxX,
         duration: roundTime / 1000,
         ease: "none",
         onComplete: () => {
@@ -220,7 +221,7 @@ function moveRocket() {
         const movingUp = newY < rocket.y; // Check if the new Y position is above the current position
 
         // Flip the rocket vertically when moving up
-        rocket.scale.y = movingUp ? 1 : -1;
+        rocket.scale.y = movingUp ? 0.5 : -0.5;
 
         gsap.to(rocket, {y: newY, duration: 0.4, ease: "none"});
     }, 300); // Change y position every 300 milliseconds
