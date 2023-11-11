@@ -5,6 +5,17 @@ const app = new PIXI.Application({
 });
 document.body.appendChild(app.view);
 
+/* ============= GLOBAL CONSTANTS ============= */
+const roundTime = 10_000; // in milliseconds
+const initialMoney = 100; // dollars
+const minMultiplier = 0.01;
+const maxMultiplier = 30;
+/* ============= GLOBAL CONSTANTS ============= */
+let playerMoney = initialMoney;
+let currentBet = 0;
+let currentTime = roundTime;
+let currentMultiplier = 1;
+
 /* ============= ROCKET ============= */
 // create a new Sprite from an image path
 const rocket = PIXI.Sprite.from("rocket.png");
@@ -33,12 +44,11 @@ const style = new PIXI.TextStyle({
 
 /* ============= TIMER ============= */
 const timerContainer = new PIXI.Container();
-timerContainer.x = app.screen.width / 2 + 600;
-timerContainer.y = app.screen.height / 2 - 250;
-
 // Create a text object for the timer
 const timerText = new PIXI.Text('10.000', style);
 timerText.anchor.set(0.5);
+timerContainer.x = app.screen.width / 2;
+timerContainer.y = timerText.height / 2;
 timerContainer.addChild(timerText);
 
 function startCountdown(duration, textElement) {
@@ -70,7 +80,7 @@ playText.addEventListener('pointerdown', function () {
     alert("SOLD")
 });
 
-startCountdown(10000, timerText); // 10 seconds in milliseconds
+startCountdown(roundTime, timerText); // 10 seconds in milliseconds
 function moveRocket() {
     const tween = gsap.to(rocket, {
         x: app.screen.width,
