@@ -15,16 +15,17 @@ const app = new PIXI.Application({
 document.body.appendChild(app.view);
 
 /* ============= GLOBAL CONSTANTS ============= */
-const roundTime = 10_000; // in milliseconds
+const roundTime = 5_000; // in milliseconds
 const initialMoney = 100; // dollars
+const initialMultipier = 1;
 const minMultiplier = 0.01;
 const maxMultiplier = 30;
 /* ============= GLOBAL VARIABLES ============= */
 let playerMoney = initialMoney;
 let currentBet = 0;
 let currentTime = roundTime;
-let lastMultiplier = 1;
-let currentMultiplier = 1;
+let lastMultiplier = initialMultipier;
+let currentMultiplier = initialMultipier;
 
 /* ============= ROCKET ============= */
 // create a new Sprite from an image path
@@ -34,6 +35,7 @@ rocket.anchor.set(0.5);
 // move the sprite to the center of the screen
 rocket.x = 50;
 rocket.y = app.screen.height / 2;
+rocket.scale.set(0.5, 0.5);
 
 /* ============= TEXT STYLE ============= */
 const style = new PIXI.TextStyle({
@@ -137,29 +139,54 @@ app.stage.addChild(rocket);
 *
 *
 */
-startCountdown(roundTime, timerText);
-moveRocket();
+
+
+startGame();
+
+/* ============= GAME LOGIC FUNCTIONS ============= */
+function resetGame() {
+    currentTime = roundTime;
+    lastMultiplier = initialMultipier;
+    currentMultiplier = initialMultipier;
+}
+
+function startGame() {
+    resetGame();
+    const a = () => {
+        console.count()
+    }
+    test = app.ticker.add(a);
+    app.ticker.remove(a);
+    startCountdown(roundTime, timerText);
+    moveRocket();
+}
+
+
 
 function moveRocket() {
-    const tween = gsap.to(rocket, {
-        x: app.screen.width,
-        duration: 10,
+    // x-movement
+    rocket.x = cryptoChart.x;
+    gsap.to(rocket, {
+        x: maxY + 20,
+        duration: roundTime / 1000,
         ease: "none",
-        onComplete: function () {
-            rocket.x = 0;
-            moveRocket();
+        onComplete: () => {
+            // rocket.x = 0;
         }
     });
 
-    setInterval(() => {
-        const newY = Math.random() * app.screen.height;
-        const movingUp = newY < rocket.y; // Check if the new Y position is above the current position
+    // y-movement
+    // gsap.to(rocket)
 
-        // Flip the rocket vertically when moving up
-        rocket.scale.y = movingUp ? 1 : -1;
-
-        gsap.to(rocket, {y: newY, duration: 0.4, ease: "none"});
-    }, 300); // Change y position every 300 milliseconds
+    // setInterval(() => {
+    //     const newY = Math.random() * app.screen.height;
+    //     const movingUp = newY < rocket.y; // Check if the new Y position is above the current position
+    //
+    //     // Flip the rocket vertically when moving up
+    //     rocket.scale.y = movingUp ? 1 : -1;
+    //
+    //     gsap.to(rocket, {y: newY, duration: 0.4, ease: "none"});
+    // }, 300); // Change y position every 300 milliseconds
 }
 
 function startCountdown(duration, textElement) {
