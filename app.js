@@ -13,6 +13,7 @@ const minMultiplier = 0.01;
 const maxMultiplier = 30;
 const blurFilter = new PIXI.filters.BlurFilter();
 const zoomBlurFilter = new PIXI.filters.ZoomBlurFilter({radius: app.screen.height / 3, strength: 0.08, innerRadius: 100});
+const shockwaveFilter = new PIXI.filters.ShockwaveFilter();
 /* ============= GLOBAL VARIABLES ============= */
 let playerMoney = initialMoney;
 let currentBet = 0;
@@ -248,6 +249,7 @@ rec.addChild(lastWin);
 
 // Add the HTML input element to the document body
 document.body.appendChild(inputElement);
+inputElement.setAttribute('required', '');
 
 // Handle input change event
 let inputValue = 0;
@@ -424,7 +426,7 @@ function unblurGame() {
     multiplierLabels.forEach(label => (label.filters = []));
     timeLabels.forEach(label => (label.filters = []));
     cryptoChart.filters = [];
-    cryptoChart.filters = [zoomBlurFilter];
+    cryptoChart.filters = [zoomBlurFilter, shockwaveFilter];
     rocket.filters = [];
     timerContainer.filters = [];
     sellText.filters = [];
@@ -487,8 +489,9 @@ function moveRocket() {
         if (elapsedTime < duration && isGameRunning) {
             // Update sprite's position
             rocket.x = x1 + (x2 - x1) * (elapsedTime / duration);
-            // Update zoom blur filter position
+            // Update filters position
             zoomBlurFilter.center = [rocket.x - rocket.width, rocket.y - rocket.height];
+            shockwaveFilter.center = [rocket.x - rocket.width, rocket.y - rocket.height];
 
             // Store the rocket position for the trail
             rocketTrail.push({ x: rocket.x, y: rocket.y });
