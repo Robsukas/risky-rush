@@ -228,10 +228,16 @@ const cryptoChart = createCryptoChart(maxX, maxY);
 cryptoChart.x = app.screen.width / 2 - cryptoChart.width / 2;
 cryptoChart.y = app.screen.height / 2 - cryptoChart.height / 2;
 
+/* ========= DEPOSIT AMOUNT TO SCREEN ========= */
+let depositAmount = new PIXI.Text(`Current Deposit: `, smallStyle);
+depositAmount.x = cryptoChart.x;
+depositAmount.y = timerContainer.y;
+
 /* ============= LAYERING ============= */
 app.stage.addChild(cryptoChart);
 app.stage.addChild(...leftSideTexts);
 app.stage.addChild(sellText);
+app.stage.addChild(depositAmount);
 app.stage.addChild(timerContainer);
 app.stage.addChild(rocket);
 app.stage.addChild(rec)
@@ -242,7 +248,9 @@ depositText.addEventListener('pointerdown', function () {
     rec.visible = false;
     inputElement.style.display = 'none';
 
-    const depositAmount = new PIXI.Text(`Current Deposit: ${inputValue}`, smallStyle);
+    /* ========= DEPOSIT AMOUNT TO SCREEN ========= */
+    app.stage.removeChild(depositAmount);
+    depositAmount = new PIXI.Text(`Current Deposit: ${inputValue}`, smallStyle);
     depositAmount.x = cryptoChart.x;
     depositAmount.y = timerContainer.y;
     app.stage.addChild(depositAmount);
@@ -276,6 +284,7 @@ function blurGame() {
     rocket.filters = [blurFilter];
     timerContainer.filters = [blurFilter];
     sellText.filters = [blurFilter];
+    depositAmount.filters = [blurFilter]
 }
 
 function unblurGame() {
@@ -284,6 +293,7 @@ function unblurGame() {
     rocket.filters = [];
     timerContainer.filters = [];
     sellText.filters = [];
+    depositAmount.filters = [];
 }
 
 function resetGame() {
