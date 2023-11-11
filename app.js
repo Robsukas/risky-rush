@@ -7,6 +7,60 @@ document.body.appendChild(app.view);
 
 let rocket;
 
+// Function to create a line chart
+// Function to create a line chart with grid lines
+function createCryptoChart(maxX, maxY) {
+    const chartContainer = new PIXI.Container();
+
+    // Draw horizontal grid lines
+    for (let i = 0; i <= maxY; i += 20) {
+        const line = new PIXI.Graphics();
+        if (i === maxY / 2) {
+            line.lineStyle(2, 0x000000);
+        } else {
+            line.lineStyle(1, 0x666666);
+        }
+        line.moveTo(0, i);
+        line.lineTo(maxX, i);
+        chartContainer.addChild(line);
+    }
+
+    // Draw vertical grid lines
+    for (let i = 0; i <= maxX; i += 20) {
+        const line = new PIXI.Graphics();
+        if (i === 0) {
+            line.lineStyle(2, 0x000000);
+        } else {
+            line.lineStyle(1, 0x666666);
+        }
+        line.moveTo(i, 0);
+        line.lineTo(i, maxY);
+        chartContainer.addChild(line);
+    }
+
+    // Create a line chart
+    const chart = new PIXI.Graphics();
+    const lineColor = 0x00FF00;
+    const lineWidth = 2;
+
+    chart.lineStyle(lineWidth, lineColor);
+
+    chartContainer.addChild(chart);
+
+    return chartContainer;
+}
+
+// Set the maximum values for the X and Y axes
+const maxX = 1200;
+const maxY = 600;
+
+// Add the crypto chart to the stage
+const cryptoChart = createCryptoChart(maxX, maxY);
+cryptoChart.x = app.screen.width / 2 - cryptoChart.width / 2;
+cryptoChart.y = app.screen.height / 2 - cryptoChart.height / 2;
+
+app.stage.addChild(cryptoChart);
+
 function createRocket() {
     // create a new Sprite from an image path
     rocket = PIXI.Sprite.from("rocket.png");
@@ -36,6 +90,7 @@ const style = new PIXI.TextStyle({
     dropShadowDistance: 6,
     align: 'center'
 });
+
 
 // Create a container
 const timerContainer = new PIXI.Container();
@@ -104,56 +159,9 @@ function moveRocket() {
 
 moveRocket();
 
-// Function to create a line chart
-// Function to create a line chart with grid lines
-function createCryptoChart(maxX, maxY) {
-    const chartContainer = new PIXI.Container();
 
-    // Draw horizontal grid lines
-    for (let i = 0; i <= maxY; i += 20) {
-        const line = new PIXI.Graphics();
-        if (i === maxY / 2) {
-            line.lineStyle(2, 0x000000);
-        } else {
-            line.lineStyle(1, 0x666666);
-        }
-        line.moveTo(0, i);
-        line.lineTo(maxX, i);
-        chartContainer.addChild(line);
-    }
 
-    // Draw vertical grid lines
-    for (let i = 0; i <= maxX; i += 20) {
-        const line = new PIXI.Graphics();
-        if (i === 0) {
-            line.lineStyle(2, 0x000000);
-        } else {
-            line.lineStyle(1, 0x666666);
-        }
-        line.moveTo(i, 0);
-        line.lineTo(i, maxY);
-        chartContainer.addChild(line);
-    }
 
-    // Create a line chart
-    const chart = new PIXI.Graphics();
-    const lineColor = 0x00FF00;
-    const lineWidth = 2;
 
-    chart.lineStyle(lineWidth, lineColor);
 
-    chartContainer.addChild(chart);
-
-    return chartContainer;
-}
-
-// Set the maximum values for the X and Y axes
-const maxX = 1200;
-const maxY = 600;
-
-// Add the crypto chart to the stage
-const cryptoChart = createCryptoChart(maxX, maxY);
-cryptoChart.x = app.screen.width / 2 - cryptoChart.width / 2;
-cryptoChart.y = app.screen.height / 2 - cryptoChart.height / 2;
-app.stage.addChild(cryptoChart);
 
