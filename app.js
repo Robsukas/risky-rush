@@ -12,6 +12,7 @@ const initialMultipier = 1;
 const minMultiplier = 0.01;
 const maxMultiplier = 30;
 const blurFilter = new PIXI.filters.BlurFilter();
+const zoomBlurFilter = new PIXI.filters.ZoomBlurFilter({radius: app.screen.height / 3, strength: 0.08, innerRadius: 100});
 /* ============= GLOBAL VARIABLES ============= */
 let playerMoney = initialMoney;
 let currentBet = 0;
@@ -22,7 +23,7 @@ let isGameRunning = false;
 
 /* ============= ROCKET ============= */
 // create a new Sprite from an image path
-const rocket = PIXI.Sprite.from("rocket.png");
+const rocket = PIXI.Sprite.from("images/rocket.png");
 // center the sprite's anchor point
 rocket.anchor.set(0.5);
 // move the sprite to the center of the screen
@@ -269,7 +270,6 @@ sellText.addEventListener('pointerdown', function () {
 */
 
 
-
 /* ============= GAME LOGIC FUNCTIONS ============= */
 function blurGame() {
     cryptoChart.filters = [blurFilter];
@@ -280,7 +280,7 @@ function blurGame() {
 }
 
 function unblurGame() {
-    cryptoChart.filters = [];
+    cryptoChart.filters = [zoomBlurFilter];
     leftSideTexts.forEach(text => (text.filters = []));
     rocket.filters = [];
     timerContainer.filters = [];
@@ -324,9 +324,11 @@ function moveRocket() {
         // Calculate elapsed time in seconds
         let elapsedTime = (currentTime - startTime);
 
-        // Update sprite's position
         if (elapsedTime < duration && isGameRunning) {
+            // Update sprite's position
             rocket.x = x1 + (x2 - x1) * (elapsedTime / duration);
+            // Update zoom blur filter position
+            zoomBlurFilter.center = [rocket.x - rocket.width, rocket.y - rocket.height];
         } else {
             xTicker.stop(); // Stop the ticker after the duration or if game over
         }
