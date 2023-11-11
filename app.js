@@ -10,10 +10,11 @@ const roundTime = 10_000; // in milliseconds
 const initialMoney = 100; // dollars
 const minMultiplier = 0.01;
 const maxMultiplier = 30;
-/* ============= GLOBAL CONSTANTS ============= */
+/* ============= GLOBAL VARIABLES ============= */
 let playerMoney = initialMoney;
 let currentBet = 0;
 let currentTime = roundTime;
+let lastMultiplier = 1;
 let currentMultiplier = 1;
 
 /* ============= ROCKET ============= */
@@ -50,25 +51,6 @@ timerText.anchor.set(0.5);
 timerContainer.x = app.screen.width / 2;
 timerContainer.y = timerText.height / 2;
 timerContainer.addChild(timerText);
-
-function startCountdown(duration, textElement) {
-    var startTime = Date.now();
-    var countdownInterval = setInterval(() => {
-        var elapsedTime = Date.now() - startTime;
-        var remainingTime = Math.max(duration - elapsedTime, 0);
-        var seconds = Math.floor(remainingTime / 1000);
-        var milliseconds = Math.floor((remainingTime % 1000) / 10); // Dividing by 10 to get centiseconds
-
-        if (remainingTime <= 0) {
-            clearInterval(countdownInterval);
-            textElement.text = '0.000';
-            // Actions when countdown ends
-        }
-
-        textElement.text = seconds + '.' + (milliseconds < 10 ? '0' : '') + milliseconds;
-    }, 10); // Updating every 10 milliseconds
-}
-
 
 /* ============= PLAY TEXT ============= */
 const playText = new PIXI.Text('SELL!', style);
@@ -191,3 +173,54 @@ depositText.addEventListener('pointerdown', function () {
 
 
 
+/*
+*
+*
+*
+============= RECURRING LOGIC =============
+*
+*
+*
+*/
+startCountdown(roundTime, timerText);
+moveRocket();
+
+function moveRocket() {
+    const tween = gsap.to(rocket, {
+        x: app.screen.width,
+        duration: 10,
+        ease: "none",
+        onComplete: function () {
+            rocket.x = 0;
+            moveRocket();
+        }
+    });
+
+    setInterval(() => {
+        const newY = Math.random() * app.screen.height;
+        const movingUp = newY < rocket.y; // Check if the new Y position is above the current position
+
+        // Flip the rocket vertically when moving up
+        rocket.scale.y = movingUp ? 1 : -1;
+
+        gsap.to(rocket, {y: newY, duration: 0.4, ease: "none"});
+    }, 300); // Change y position every 300 milliseconds
+}
+
+function startCountdown(duration, textElement) {
+    var startTime = Date.now();
+    var countdownInterval = setInterval(() => {
+        var elapsedTime = Date.now() - startTime;
+        var remainingTime = Math.max(duration - elapsedTime, 0);
+        var seconds = Math.floor(remainingTime / 1000);
+        var milliseconds = Math.floor((remainingTime % 1000) / 10); // Dividing by 10 to get centiseconds
+
+        if (remainingTime <= 0) {
+            clearInterval(countdownInterval);
+            textElement.text = '0.000';
+            // Actions when countdown ends
+        }
+
+        textElement.text = seconds + '.' + (milliseconds < 10 ? '0' : '') + milliseconds;
+    }, 10); // Updating every 10 milliseconds
+}
