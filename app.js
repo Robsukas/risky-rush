@@ -27,7 +27,7 @@ const app = new PIXI.Application();
     // center the sprite's anchor point
     rocket.anchor.set(0.5);
     // move the sprite to the center of the screen
-    rocket.x = 50;
+    rocket.x = 100;
     rocket.y = app.screen.height / 2;
     rocket.scale.set(0.5, 0.5);
     rocket.rotation = Math.PI / 2;
@@ -67,22 +67,29 @@ const app = new PIXI.Application();
 
     /* ============= TIMER ============= */
     const timerContainer = new PIXI.Container();
+
+    // Convert milliseconds to seconds
+    let durationSeconds = roundTime / 1000;
+
+    // Set the desired number of decimal places
+    const decimalPlaces = 2;
+
+    // Format the duration as a string with the specified decimal places
+    const formattedDuration = durationSeconds.toFixed(decimalPlaces);
+
     // Create a text object for the timer
-    const timerText = new PIXI.Text({text: '5.00', style});
+    const timerText = new PIXI.Text({text: formattedDuration, style});
     timerText.anchor.set(0.5);
     timerContainer.x = app.screen.width / 2;
     timerContainer.y = timerText.height / 2;
     timerContainer.addChild(timerText);
 
     /* ============= SELL TEXT ============= */
-    const sellText = new PIXI.Text('SELL!', style);
+    const sellText = new PIXI.Text({text: 'SELL!', style});
     sellText.x = app.screen.width / 2 - (sellText.width / 2);
     sellText.y = app.screen.height - sellText.height;
     sellText.eventMode = 'static';
     sellText.cursor = 'pointer';
-    sellText.addEventListener('pointerdown', function () {
-        alert("SOLD")
-    });
 
     /* ========= DEPOSIT CONTAINER ==========*/
     const rec = new PIXI.Graphics();
@@ -97,12 +104,11 @@ const app = new PIXI.Application();
     rec.rect(centerX, centerY, rectWidth, rectHeight).fill(0x000000);
 
     /* ============= START TEXT ============= */
-    const depositText = new PIXI.Text('START!', style);
+    const depositText = new PIXI.Text({text: 'START!', style});
     depositText.x = rec.getBounds().x + rectWidth / 2 - depositText.width / 2
     depositText.y = rec.getBounds().y + rectHeight - depositText.height;
     depositText.eventMode = 'static';
     depositText.cursor = 'pointer';
-    rec.addChild(depositText);
 
     // Create a PIXI.Text for instructions
     const textStyle = new PIXI.TextStyle({
@@ -112,9 +118,10 @@ const app = new PIXI.Application();
     });
 
     /* ======== INSTRUCTION TEXT ======== */
-    const instructionText = new PIXI.Text('Enter a number:', textStyle);
+    const instructionText = new PIXI.Text({text: 'Enter a number:', textStyle});
     instructionText.x = rec.getBounds().x + rectWidth / 2 - instructionText.width / 2;
     instructionText.y = rec.getBounds().y + instructionText.height * 3;
+    instructionText.style = textStyle;
 
     // Calculate the bottom coordinate of the instruction text
     const instructionTextBottom = instructionText.y + instructionText.height + 20;
@@ -136,11 +143,6 @@ const app = new PIXI.Application();
     inputElement.style.top = `${instructionTextBottom}px`;
     inputElement.style.width = `200px`;
     inputElement.style.height = `30px`;
-
-    // Add the PIXI text and graphics to the stage
-    rec.addChild(instructionText);
-    rec.addChild(inputField)
-
     // Add the HTML input element to the document body
     document.body.appendChild(inputElement);
 
@@ -207,7 +209,7 @@ const app = new PIXI.Application();
 
     // Create and position each text element
     for (let i = 0; i < totalTexts; i++) {
-        const text = new PIXI.Text(textContents[i], smallStyle);
+        const text = new PIXI.Text({text: textContents[i], smallStyle});
         text.anchor.x = 1;
         text.x = cryptoChart.x - 10; // Adjust the x-coordinate to the left of the cryptoChart
         text.y = cryptoChart.y + verticalSpacing * i; // Evenly spaced between top and bottom
@@ -215,7 +217,7 @@ const app = new PIXI.Application();
     }
 
     /* ========= DEPOSIT AMOUNT TO SCREEN ========= */
-    let depositAmount = new PIXI.Text(`Current Deposit: `, smallStyle);
+    let depositAmount = new PIXI.Text({text: `Current Deposit: `, smallStyle});
     depositAmount.x = cryptoChart.x;
     depositAmount.y = timerContainer.y;
 
@@ -227,6 +229,9 @@ const app = new PIXI.Application();
     app.stage.addChild(timerContainer);
     app.stage.addChild(rocket);
     app.stage.addChild(rec)
+    app.stage.addChild(depositText);
+    app.stage.addChild(inputField);
+    app.stage.addChild(instructionText);
 
     blurGame();
 
