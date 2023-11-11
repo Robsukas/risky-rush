@@ -112,6 +112,10 @@ ticker.start();
 /* ============= ROCKET ============= */
 // create a new Sprite from an image path
 const rocket = PIXI.Sprite.from("images/rocket.png");
+
+// create a new Sprite for the rocket path
+const rocketPath = new PIXI.Graphics();
+
 // center the sprite's anchor point
 rocket.anchor.set(0.5);
 // move the sprite to the center of the screen
@@ -367,6 +371,7 @@ app.stage.addChild(...timeLabels);
 app.stage.addChild(sellText);
 app.stage.addChild(depositAmount);
 app.stage.addChild(timerContainer);
+app.stage.addChild(rocketPath);
 app.stage.addChild(rocket);
 app.stage.addChild(rec)
 
@@ -442,6 +447,7 @@ function startGame() {
 let conf = 0;
 function endGame() {
     isGameRunning = false;
+    rocketPath.clear();
     blurGame();
 
     rec.removeChild(lastWin);
@@ -463,6 +469,8 @@ function moveRocket() {
     const x2 = maxX + 95;
     let duration = roundTime;
 
+    const rocketTrail = [];
+
     // Start time
     let startTime = Date.now();
 
@@ -481,6 +489,20 @@ function moveRocket() {
             rocket.x = x1 + (x2 - x1) * (elapsedTime / duration);
             // Update zoom blur filter position
             zoomBlurFilter.center = [rocket.x - rocket.width, rocket.y - rocket.height];
+
+            // Store the rocket position for the trail
+            rocketTrail.push({ x: rocket.x, y: rocket.y });
+
+            // Clear the previous rocket trail
+            rocketPath.clear();
+
+            // Draw the continuous rocket trail
+            rocketPath.lineStyle(3, 0x000000); // Line color (black), adjust thickness as needed
+            rocketPath.moveTo(rocketTrail[0].x, rocketTrail[0].y);
+
+            for (let i = 1; i < rocketTrail.length; i++) {
+                rocketPath.lineTo(rocketTrail[i].x, rocketTrail[i].y);
+            }
         } else {
             xTicker.stop(); // Stop the ticker after the duration or if game over
         }
