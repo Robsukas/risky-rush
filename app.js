@@ -1,5 +1,11 @@
 /*
+*
+*
+*
 ============= INITIAL SETUP =============
+*
+*
+*
 */
 // Create base app
 const app = new PIXI.Application({
@@ -122,7 +128,15 @@ app.stage.addChild(playText);
 app.stage.addChild(timerContainer);
 app.stage.addChild(rocket);
 
-
+/*
+*
+*
+*
+============= RECURRING LOGIC =============
+*
+*
+*
+*/
 startCountdown(roundTime, timerText);
 moveRocket();
 
