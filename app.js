@@ -1,6 +1,6 @@
 const app = new PIXI.Application();
 (async () => {
-    await app.init({ background: '0x1099bb', resizeTo: window, preference: 'webgpu' });
+    await app.init({ background: '0x1099bb', resizeTo: window, preference: 'webgpu', interactive: 'true'});
 
     // do pixi things
     document.body.appendChild(app.canvas);
@@ -14,7 +14,9 @@ const app = new PIXI.Application();
     player.x = app.screen.width / 2;
     player.y = app.screen.height / 2;
     // add sprite to stage
-    app.stage.addChild(player);
+    const test2 = app.stage.addChild(player);
+    test2.interactive = true;
+    test2.addEventListener('click', ()=>{alert("SOLD")});
 
 // text style
     const style = new PIXI.TextStyle({
@@ -31,6 +33,7 @@ const app = new PIXI.Application();
             color: "black",
             distance: 5,
         },
+        interactive: 'true'
     });
 // Create a container
     const timerContainer = new PIXI.Container();
