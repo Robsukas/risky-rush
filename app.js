@@ -6,7 +6,7 @@ const app = new PIXI.Application({
 document.body.appendChild(app.view);
 
 /* ============= GLOBAL CONSTANTS ============= */
-const roundTime = 5_000; // in milliseconds
+const roundTime = 10_000; // in milliseconds
 const initialMoney = 100; // dollars
 const initialMultipier = 1;
 const minMultiplier = 0.01;
@@ -76,7 +76,7 @@ timerContainer.addChild(timerText);
 /* ============= SELL TEXT ============= */
 const sellText = new PIXI.Text('SELL!', style);
 sellText.x = app.screen.width / 2 - (sellText.width / 2);
-sellText.y = app.screen.height - sellText.height;
+sellText.y = app.screen.height - sellText.height + 15;
 sellText.eventMode = 'static';
 sellText.cursor = 'pointer';
 sellText.addEventListener('pointerdown', function () {
@@ -206,11 +206,11 @@ const cryptoChart = createCryptoChart(maxX, maxY);
 cryptoChart.x = app.screen.width / 2 - cryptoChart.width / 2;
 cryptoChart.y = app.screen.height / 2 - cryptoChart.height / 2;
 
-/* ============= LEFT SIDE TEXT ============= */
-const leftSideTexts = [];
+/* ============= MULTIPLIER LABELS ============= */
+const multiplierLabels = [];
 
-// Text content for each text element
-const textContents = [
+// Text content for each multiplier label
+const multiplierContents = [
     '2x',
     '1.75x',
     '1.5x',
@@ -222,18 +222,36 @@ const textContents = [
     '0x',
 ];
 
-const totalTexts = textContents.length;
+const totalMultipliers = multiplierContents.length;
 
-// Calculate the vertical spacing between texts
-const verticalSpacing = cryptoChart.height / (totalTexts);
+// Calculate the vertical spacing between multiplier labels
+const verticalSpacing = cryptoChart.height / (totalMultipliers);
 
-// Create and position each text element
-for (let i = 0; i < totalTexts; i++) {
-    const text = new PIXI.Text(textContents[i], smallStyle);
-    text.anchor.x = 1;
-    text.x = cryptoChart.x - 10; // Adjust the x-coordinate to the left of the cryptoChart
-    text.y = cryptoChart.y + verticalSpacing * i; // Evenly spaced between top and bottom
-    leftSideTexts.push(text);
+// Create and position each multiplier label on the left side
+for (let i = 0; i < totalMultipliers; i++) {
+    const label = new PIXI.Text(multiplierContents[i], smallStyle);
+    label.anchor.x = 1;
+    label.x = cryptoChart.x - 10; // Adjust the x-coordinate to the left of the cryptoChart
+    label.y = cryptoChart.y + verticalSpacing * i; // Evenly spaced between top and bottom
+    multiplierLabels.push(label);
+}
+
+/* ============= TIME LABELS ============= */
+const timeLabels = [];
+
+// Total seconds for the time labels
+const totalSeconds = 10;
+
+// Calculate the horizontal spacing between time labels
+const horizontalSpacing = cryptoChart.width / totalSeconds;
+
+// Create and position each time label at the bottom of the chart
+for (let i = 0; i <= totalSeconds; i++) {
+    const timeLabel = new PIXI.Text(`${totalSeconds - i}s`, smallStyle);
+    timeLabel.anchor.x = 0.5;
+    timeLabel.x = cryptoChart.x + horizontalSpacing * i;
+    timeLabel.y = cryptoChart.y + cryptoChart.height - 5; // Adjust the y-coordinate below the chart
+    timeLabels.push(timeLabel);
 }
 
 /* ========= DEPOSIT AMOUNT TO SCREEN ========= */
@@ -243,7 +261,8 @@ depositAmount.y = timerContainer.y;
 
 /* ============= LAYERING ============= */
 app.stage.addChild(cryptoChart);
-app.stage.addChild(...leftSideTexts);
+app.stage.addChild(...multiplierLabels);
+app.stage.addChild(...timeLabels);
 app.stage.addChild(sellText);
 app.stage.addChild(depositAmount);
 app.stage.addChild(timerContainer);
@@ -288,7 +307,8 @@ sellText.addEventListener('pointerdown', function () {
 /* ============= GAME LOGIC FUNCTIONS ============= */
 function blurGame() {
     cryptoChart.filters = [blurFilter];
-    leftSideTexts.forEach(text => (text.filters = [blurFilter]));
+    multiplierLabels.forEach(label => (label.filters = [blurFilter]));
+    timeLabels.forEach(label => (label.filters = [blurFilter]));
     rocket.filters = [blurFilter];
     timerContainer.filters = [blurFilter];
     sellText.filters = [blurFilter];
@@ -297,7 +317,8 @@ function blurGame() {
 
 function unblurGame() {
     cryptoChart.filters = [];
-    leftSideTexts.forEach(text => (text.filters = []));
+    multiplierLabels.forEach(label => (label.filters = []));
+    timeLabels.forEach(label => (label.filters = []));
     rocket.filters = [];
     timerContainer.filters = [];
     sellText.filters = [];
