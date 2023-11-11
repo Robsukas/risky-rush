@@ -26,20 +26,36 @@ app.stage.sortableChildren = true;
 /* ============= CURSOR ============= */
 
 const explosionTexture = PIXI.Texture.from('images/exp.png');
-const flameTexture = PIXI.Texture.from('images/flame.png');
+const cursorTexture = PIXI.Texture.from('images/star.png');
+const cursorTracker = new PIXI.Sprite(cursorTexture);
+cursorTracker.anchor.set(0.5);
+cursorTracker.zIndex = 1000;
+app.stage.addChild(cursorTracker);
 
-const flameEffect = new PIXI.Sprite(flameTexture);
-flameEffect.anchor.set(0.5);
-flameEffect.scale.set(0.05,0.05)
-flameEffect.visible = false;
-app.stage.addChild(flameEffect);
+// Hide the default cursor (optional)
+app.view.style.cursor = 'none';
 
-function animateFlame() {
-    // You can add flickering effect by changing the alpha or scale
-    flameEffect.scale.x = 0.05 + Math.random() * 0.1;
-    flameEffect.scale.y = 0.05 + Math.random() * 0.1;
-    flameEffect.alpha = 0.1 + Math.random() * 0.2;
-}
+// Animation logic remains the same
+let scaleDirection = 1;
+const maxScale = 1.5;
+const minScale = 0.5;
+const scaleSpeed = 0.05;
+const rotationSpeed = 0.1;
+
+// Create a ticker for the animation loop
+const ticker = new PIXI.Ticker();
+ticker.add(() => {
+    // Update scale
+    cursorTracker.scale.x += scaleSpeed * scaleDirection;
+    cursorTracker.scale.y += scaleSpeed * scaleDirection;
+
+    // Reverse direction if limits are reached
+    if (cursorTracker.scale.x > maxScale || cursorTracker.scale.x < minScale) {
+        scaleDirection *= -1;
+    }
+
+    cursorTracker.rotation += rotationSpeed;
+});
 
 function createExplosion(x, y) {
     const explosion = new PIXI.Sprite(explosionTexture);
@@ -79,38 +95,6 @@ app.view.addEventListener('click', (event) => {
     createExplosion(x, y);
 });
 
-app.view.addEventListener('mousemove', (event) => {
-    const rect = app.view.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    const offset = 15
-
-    flameEffect.position.set(x, y - offset);
-    flameEffect.visible = true;
-});
-
-// Handle mouse out event to hide the flame when cursor is not over the canvas
-app.view.addEventListener('mouseout', () => {
-    flameEffect.visible = false;
-});
-
-const flameTicker = new PIXI.Ticker();
-flameTicker.add(animateFlame);
-flameTicker.start();
-
-app.stage.sortableChildren = true;
-
-/* ============= CURSOR ============= */
-
-const cursorTexture = PIXI.Texture.from('star.png');
-const cursorTracker = new PIXI.Sprite(cursorTexture);
-cursorTracker.anchor.set(0.5);
-cursorTracker.zIndex = 1000;
-app.stage.addChild(cursorTracker);
-
-// Hide the default cursor (optional)
-app.view.style.cursor = 'none';
-
 // Update the cursor sprite position on mouse move
 app.view.addEventListener('mousemove', (event) => {
     const rect = app.view.getBoundingClientRect();
@@ -121,27 +105,7 @@ app.view.addEventListener('mousemove', (event) => {
     cursorTracker.y = y;
 });
 
-// Animation logic remains the same
-let scaleDirection = 1;
-const maxScale = 1.5;
-const minScale = 0.5;
-const scaleSpeed = 0.05;
-const rotationSpeed = 0.1;
-
-// Create a ticker for the animation loop
-const ticker = new PIXI.Ticker();
-ticker.add(() => {
-    // Update scale
-    cursorTracker.scale.x += scaleSpeed * scaleDirection;
-    cursorTracker.scale.y += scaleSpeed * scaleDirection;
-
-    // Reverse direction if limits are reached
-    if (cursorTracker.scale.x > maxScale || cursorTracker.scale.x < minScale) {
-        scaleDirection *= -1;
-    }
-
-    cursorTracker.rotation += rotationSpeed;
-});
+app.stage.sortableChildren = true;
 
 ticker.start();
 
