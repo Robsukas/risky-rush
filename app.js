@@ -325,7 +325,7 @@ const app = new PIXI.Application();
         //Reset rocket x
         rocket.x = cryptoChart.x;
         const x1 = rocket.x;
-        const x2 = maxX + 20;
+        const x2 = maxX + 95;
         let duration = roundTime;
 
         // Start time
@@ -367,7 +367,10 @@ const app = new PIXI.Application();
 
             // Check if it's time to update the target Y position
             if (currentTime - lastUpdateTime > updateInterval) {
-                targetY = Math.random() * app.screen.height;
+                // Calculate the maximum Y value to stay within the screen
+                const chartMinY = 100; // Adjust this based on your actual minimum Y value
+                const chartMaxY = app.screen.height - 100
+                targetY = Math.random() * (chartMaxY - chartMinY) + chartMinY;
                 lastUpdateTime = currentTime;
             }
 
