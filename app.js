@@ -24,6 +24,83 @@ app.stage.sortableChildren = true;
 
 /* ============= CURSOR ============= */
 
+const explosionTexture = PIXI.Texture.from('exp.png');
+const flameTexture = PIXI.Texture.from('flame.png');
+
+const flameEffect = new PIXI.Sprite(flameTexture);
+flameEffect.anchor.set(0.5);
+flameEffect.scale.set(0.05,0.05)
+flameEffect.visible = false;
+app.stage.addChild(flameEffect);
+
+function animateFlame() {
+    // You can add flickering effect by changing the alpha or scale
+    flameEffect.scale.x = 0.05 + Math.random() * 0.1;
+    flameEffect.scale.y = 0.05 + Math.random() * 0.1;
+    flameEffect.alpha = 0.1 + Math.random() * 0.2;
+}
+
+function createExplosion(x, y) {
+    const explosion = new PIXI.Sprite(explosionTexture);
+    explosion.anchor.set(0.5);
+    explosion.position.set(x, y);
+    explosion.scale.set(0.1); // Start small
+    app.stage.addChild(explosion);
+
+    // Animate the explosion
+    let scale = 0.1;
+    const maxScale = 0.2; // Maximum scale of explosion
+    const scaleSpeed = 0.05; // Speed of scaling up
+
+    const explosionTicker = new PIXI.Ticker();
+    explosionTicker.add(() => {
+        scale += scaleSpeed;
+        explosion.scale.set(scale);
+
+        // Once the explosion reaches max size, remove it
+        if (explosion.scale.x >= maxScale) {
+            explosionTicker.stop();
+            app.stage.removeChild(explosion);
+        }
+    });
+    explosionTicker.start();
+}
+
+
+
+// Handle mouse click event
+app.view.addEventListener('click', (event) => {
+    const rect = app.view.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // Create an explosion at the click position
+    createExplosion(x, y);
+});
+
+app.view.addEventListener('mousemove', (event) => {
+    const rect = app.view.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const offset = 15
+
+    flameEffect.position.set(x, y - offset);
+    flameEffect.visible = true;
+});
+
+// Handle mouse out event to hide the flame when cursor is not over the canvas
+app.view.addEventListener('mouseout', () => {
+    flameEffect.visible = false;
+});
+
+const flameTicker = new PIXI.Ticker();
+flameTicker.add(animateFlame);
+flameTicker.start();
+
+app.stage.sortableChildren = true;
+
+/* ============= CURSOR ============= */
+
 const cursorTexture = PIXI.Texture.from('star.png');
 const cursorTracker = new PIXI.Sprite(cursorTexture);
 cursorTracker.anchor.set(0.5);
