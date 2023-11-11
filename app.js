@@ -24,16 +24,9 @@ app.stage.sortableChildren = true;
 
 /* ============= CURSOR ============= */
 
-// Load the texture for the cursor
 const cursorTexture = PIXI.Texture.from('star.png');
-
-// Create a sprite for the cursor using the texture
 const cursorTracker = new PIXI.Sprite(cursorTexture);
-
-// Optionally, set the anchor to the center of the sprite
 cursorTracker.anchor.set(0.5);
-
-// Set zIndex and add the sprite to the stage
 cursorTracker.zIndex = 1000;
 app.stage.addChild(cursorTracker);
 
@@ -46,18 +39,16 @@ app.view.addEventListener('mousemove', (event) => {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    // Update the position of the cursor sprite
     cursorTracker.x = x;
     cursorTracker.y = y;
 });
 
 // Animation logic remains the same
 let scaleDirection = 1;
-const maxScale = 1.5; // Maximum scale
-const minScale = 0.5; // Minimum scale
-const scaleSpeed = 0.01; // Speed of scaling
-
-const rotationSpeed = 0.1; // Speed of rotation
+const maxScale = 1.5;
+const minScale = 0.5;
+const scaleSpeed = 0.05;
+const rotationSpeed = 0.1;
 
 // Create a ticker for the animation loop
 const ticker = new PIXI.Ticker();
@@ -74,7 +65,6 @@ ticker.add(() => {
     cursorTracker.rotation += rotationSpeed;
 });
 
-// Start the ticker
 ticker.start();
 
 /* ============= ROCKET ============= */
