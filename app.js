@@ -91,4 +91,5 @@ app.ticker.add((delta) => {
     player.rotation += 0.005 * delta;
 });
 
+
 startCountdown(10000, timerText); // 10 seconds in milliseconds
