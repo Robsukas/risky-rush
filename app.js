@@ -344,9 +344,9 @@ function moveRocket() {
 
     // Set the initial target Y position and interval to update it
     let targetY = Math.random() * app.screen.height;
-    let updateInterval = 150; // Update target every 1000ms (1 second)
+    let updateInterval = 175; // Update target every * ms
     let lastUpdateTime = Date.now();
-    // Variable to track the desired rotation (0 or 180 degrees)
+    // Variable to track the desired rotation
     let targetRotation = 0;
 
     yTicker.add(() => {
