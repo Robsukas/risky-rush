@@ -330,7 +330,6 @@ function blurGame() {
 function unblurGame() {
     multiplierLabels.forEach(label => (label.filters = []));
     timeLabels.forEach(label => (label.filters = []));
-    leftSideTexts.forEach(text => (text.filters = []));
     cryptoChart.filters = [];
     cryptoChart.filters = [zoomBlurFilter];
     rocket.filters = [];
