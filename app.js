@@ -65,14 +65,17 @@ const app = new PIXI.Application();
     }
 
 
-// Add play text
+    // Add play text
     const playText = new PIXI.Text({text: 'SELL!', style});
     playText.x = app.screen.width / 2 - (playText.width / 2);
     playText.y = app.screen.height - playText.height;
-//    playText.eventMode = 'static';
-//    playText.cursor = 'pointer';
+    playText.eventMode = 'static';
+    playText.cursor = 'pointer';
+    playText.addEventListener('click', ()=>{alert("SOLD")})
+    app.stage.addChild(playText);
     const target = app.stage.addChild(playText);
     target.interactive = true;
+    console.log(target.isInteractive());
     target.addEventListener('click', ()=>{alert("SOLD")});
 
 // Listen for animate update
