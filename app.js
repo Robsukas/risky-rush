@@ -18,6 +18,7 @@ let currentBet = 0;
 let currentTime = roundTime;
 let lastMultiplier = initialMultipier;
 let currentMultiplier = initialMultipier;
+let isGameRunning = false;
 
 /* ============= ROCKET ============= */
 // create a new Sprite from an image path
@@ -28,6 +29,7 @@ rocket.anchor.set(0.5);
 rocket.x = 50;
 rocket.y = app.screen.height / 2;
 rocket.scale.set(0.5, 0.5);
+rocket.rotation = Math.PI / 2;
 
 /* ============= TEXT STYLE ============= */
 const style = new PIXI.TextStyle({
@@ -80,9 +82,6 @@ sellText.cursor = 'pointer';
 sellText.addEventListener('pointerdown', function () {
     alert("SOLD")
 });
-
-
-
 
 /* ========= DEPOSIT CONTAINER ==========*/
 const rec = new PIXI.Graphics();
@@ -146,9 +145,10 @@ rec.addChild(inputField)
 document.body.appendChild(inputElement);
 
 // Handle input change event
+let inputValue = 0;
 inputElement.addEventListener('input', function () {
     // Get the number from the input element
-    const inputValue = parseFloat(inputElement.value);
+    inputValue = parseFloat(inputElement.value);
 
     // Perform further operations with the inputValue
     console.log('Input Value:', inputValue);
@@ -242,20 +242,27 @@ app.stage.addChild(...leftSideTexts);
 app.stage.addChild(sellText);
 app.stage.addChild(timerContainer);
 app.stage.addChild(rocket);
-app.stage.addChild(rec);
-
-
+app.stage.addChild(rec)
 
 blurGame();
 
 depositText.addEventListener('pointerdown', function () {
     rec.visible = false;
     inputElement.style.display = 'none';
+
+    const depositAmount = new PIXI.Text(`Current Deposit: ${inputValue}`, smallStyle);
+    depositAmount.x = cryptoChart.x;
+    depositAmount.y = timerContainer.y;
+    app.stage.addChild(depositAmount);
+
     unblurGame();
 
     startGame();
 });
 
+sellText.addEventListener('pointerdown', function () {
+    endGame();
+});
 
 
 /*
@@ -277,7 +284,6 @@ function blurGame() {
     rocket.filters = [blurFilter];
     timerContainer.filters = [blurFilter];
     sellText.filters = [blurFilter];
-
 }
 
 function unblurGame() {
@@ -286,7 +292,6 @@ function unblurGame() {
     rocket.filters = [];
     timerContainer.filters = [];
     sellText.filters = [];
-
 }
 
 function resetGame() {
@@ -297,66 +302,107 @@ function resetGame() {
 
 function startGame() {
     resetGame();
-    const a = () => {
-        console.count()
-    }
-    test = app.ticker.add(a);
-    app.ticker.remove(a);
+    isGameRunning = true;
     startCountdown(roundTime, timerText);
     moveRocket();
 }
 
-
+function endGame() {
+    isGameRunning = false;
+    blurGame();
+}
 
 function moveRocket() {
-    // x-movement
+    // Reset rocket x
     rocket.x = cryptoChart.x;
-    gsap.to(rocket, {
-        x: cryptoChart.x + maxX,
-        duration: roundTime / 1000,
-        ease: "none",
-        onComplete: () => {
-            // rocket.x = 0;
+    const x1 = rocket.x;
+    const x2 = maxX + 20;
+    let duration = roundTime;
+
+    // Start time
+    let startTime = Date.now();
+
+    // Add ticker for x movement
+    let xTicker = new PIXI.Ticker();
+    xTicker.add(() => {
+        // Current time
+        let currentTime = Date.now();
+
+        // Calculate elapsed time in seconds
+        let elapsedTime = (currentTime - startTime);
+
+        // Update sprite's position
+        if (elapsedTime < duration && isGameRunning) {
+            rocket.x = x1 + (x2 - x1) * (elapsedTime / duration);
+        } else {
+            xTicker.stop(); // Stop the ticker after the duration or if game over
         }
     });
 
-    // y-movement
-        setInterval(() => {
-        const newY = Math.random() * app.screen.height;
-        const movingUp = newY < rocket.y; // Check if the new Y position is above the current position
+    // Add ticker for y movement
+    let yTicker = new PIXI.Ticker();
 
-        // Flip the rocket vertically when moving up
-        rocket.scale.y = movingUp ? 0.5 : -0.5;
+    // Set the initial target Y position and interval to update it
+    let targetY = Math.random() * app.screen.height;
+    let updateInterval = 150; // Update target every 1000ms (1 second)
+    let lastUpdateTime = Date.now();
+    // Variable to track the desired rotation (0 or 180 degrees)
+    let targetRotation = 0;
 
-        gsap.to(rocket, {y: newY, duration: 0.4, ease: "none"});
-    }, 300); // Change y position every 300 milliseconds
-    // gsap.to(rocket)
+    yTicker.add(() => {
+        // Current time
+        let currentTime = Date.now();
 
-    // setInterval(() => {
-    //     const newY = Math.random() * app.screen.height;
-    //     const movingUp = newY < rocket.y; // Check if the new Y position is above the current position
-    //
-    //     // Flip the rocket vertically when moving up
-    //     rocket.scale.y = movingUp ? 1 : -1;
-    //
-    //     gsap.to(rocket, {y: newY, duration: 0.4, ease: "none"});
-    // }, 300); // Change y position every 300 milliseconds
+        // Calculate elapsed time in milliseconds
+        let elapsedTime = (currentTime - startTime);
+
+        // Check if it's time to update the target Y position
+        if (currentTime - lastUpdateTime > updateInterval) {
+            targetY = Math.random() * app.screen.height;
+            lastUpdateTime = currentTime;
+        }
+
+        // Update sprite's position
+        if (elapsedTime < duration && isGameRunning) {
+            // Gradually move towards the target Y position
+            let movementSpeed = 0.05; // Adjust this value for faster or slower movement
+            rocket.y += (targetY - rocket.y) * movementSpeed;
+
+            // Determine the direction of movement and set the target rotation accordingly
+            targetRotation = targetY < rocket.y ? 0 : Math.PI; // 0 or 180 degrees in radians
+
+            // Gradually update the rotation for smoother flipping
+            let rotationInterpolationSpeed = 0.09; // Control the flipping speed
+            rocket.rotation += (targetRotation - rocket.rotation) * rotationInterpolationSpeed;
+        } else {
+            yTicker.stop(); // Stop the ticker after the duration or if the game is over
+        }
+    });
+
+    // Start the tickers
+    xTicker.start();
+    yTicker.start();
 }
 
 function startCountdown(duration, textElement) {
-    var startTime = Date.now();
-    var countdownInterval = setInterval(() => {
-        var elapsedTime = Date.now() - startTime;
-        var remainingTime = Math.max(duration - elapsedTime, 0);
-        var seconds = Math.floor(remainingTime / 1000);
-        var milliseconds = Math.floor((remainingTime % 1000) / 10); // Dividing by 10 to get centiseconds
+    const startTime = Date.now();
+    const countdownInterval = setInterval(() => {
+        if (!isGameRunning) {
+            clearInterval(countdownInterval);
+            return;
+        }
+
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.max(duration - elapsedTime, 0);
+        const seconds = Math.floor(remainingTime / 1000);
+        const milliseconds = Math.floor((remainingTime % 1000) / 10); // Dividing by 10 to get centiseconds
+
+        textElement.text = seconds + '.' + (milliseconds < 10 ? '0' : '') + milliseconds;
 
         if (remainingTime <= 0) {
             clearInterval(countdownInterval);
             textElement.text = '0.000';
-            // Actions when countdown ends
+            endGame();
         }
-
-        textElement.text = seconds + '.' + (milliseconds < 10 ? '0' : '') + milliseconds;
     }, 10); // Updating every 10 milliseconds
 }
