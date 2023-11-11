@@ -6,7 +6,7 @@ const app = new PIXI.Application({
 document.body.appendChild(app.view);
 
 // create a new Sprite from an image path
-const bunny = PIXI.Sprite.from("https://pixijs.com/assets/bunny.png");
+const bunny = PIXI.Sprite.from("rocket.png");
 
 // center the sprite's anchor point
 bunny.anchor.set(0.5);
@@ -23,7 +23,7 @@ app.ticker.add((delta) =>
     // just for fun, let's rotate mr rabbit a little
     // delta is 1 if running at 100% performance
     // creates frame-independent transformation
-    bunny.rotation += 0.1 * delta;
+    bunny.rotation += 0.005 * delta;
 });
 
 // Add play text
