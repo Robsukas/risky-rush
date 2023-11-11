@@ -1,5 +1,5 @@
+const app = new PIXI.Application();
 (async () => {
-    const app = new PIXI.Application();
     await app.init({ background: '0x1099bb', resizeTo: window, preference: 'webgpu', interactive: 'true'});
 
 
