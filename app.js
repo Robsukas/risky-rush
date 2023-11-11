@@ -25,3 +25,31 @@ app.ticker.add((delta) =>
     // creates frame-independent transformation
     bunny.rotation += 0.1 * delta;
 });
+
+// Add play text
+const style = new PIXI.TextStyle({
+    fontFamily: 'Arial',
+    fontSize: 72,
+    fontStyle: 'italic',
+    fontWeight: 'bold',
+    fill: ['#ffffff', '#00ff99'], // gradient
+    stroke: '#4a1850',
+    strokeThickness: 5,
+    dropShadow: true,
+    dropShadowColor: '#000000',
+    dropShadowBlur: 4,
+    dropShadowAngle: Math.PI / 6,
+    dropShadowDistance: 6,
+});
+
+const playText = new PIXI.Text('SELL!', style);
+
+playText.x = app.screen.width / 2 - (playText.width / 2);
+playText.y = app.screen.height - playText.height;
+app.stage.addChild(playText);
+
+playText.eventMode = 'static';
+playText.cursor = 'pointer';
+playText.addEventListener('pointerdown', function () {
+    alert("SOLD")
+});
