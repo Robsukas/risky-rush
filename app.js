@@ -380,6 +380,10 @@ app.stage.addChild(rec)
 blurGame();
 
 depositText.addEventListener('pointerdown', function () {
+    if (inputElement.value.trim() === '') {
+        return;
+    }
+
     rec.visible = false;
     inputElement.style.display = 'none';
 
@@ -425,9 +429,9 @@ function blurGame() {
 function unblurGame() {
     multiplierLabels.forEach(label => (label.filters = []));
     timeLabels.forEach(label => (label.filters = []));
-    cryptoChart.filters = [];
     cryptoChart.filters = [zoomBlurFilter, shockwaveFilter];
     rocket.filters = [];
+    rocketPath.filters = [zoomBlurFilter];
     timerContainer.filters = [];
     sellText.filters = [];
     depositAmount.filters = [];
