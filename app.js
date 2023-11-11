@@ -30,6 +30,7 @@ const app = new PIXI.Application();
     rocket.x = 50;
     rocket.y = app.screen.height / 2;
     rocket.scale.set(0.5, 0.5);
+    rocket.rotation = Math.PI / 2;
 
     /* ============= TEXT STYLE ============= */
     const style = new PIXI.TextStyle({
@@ -73,52 +74,29 @@ const app = new PIXI.Application();
     timerContainer.y = timerText.height / 2;
     timerContainer.addChild(timerText);
 
-    /* ============= PLAY TEXT ============= */
+    /* ============= SELL TEXT ============= */
     const sellText = new PIXI.Text('SELL!', style);
     sellText.x = app.screen.width / 2 - (sellText.width / 2);
     sellText.y = app.screen.height - sellText.height;
     sellText.eventMode = 'static';
     sellText.cursor = 'pointer';
-
-    /* ============= LEFT SIDE TEXT ============= */
-    const leftSideTexts = [];
-
-    // Text content for each text element
-    const textContents = [
-        '2x',
-        '1.75x',
-        '1.5x',
-        '1.25x',
-        '1x',
-        '0.75x',
-        '0.5x',
-        '0.25x',
-        '0x',
-    ];
-
-    // Create and position each text element
-    for (let i = 0; i < textContents.length; i++) {
-        const text = new PIXI.Text(textContents[i], smallStyle);
-        text.anchor.x = 1;
-        text.x = 85; // Adjust the x-coordinate as needed
-        text.y = 85 + i * 49; // Adjust the y-coordinate for vertical spacing
-        leftSideTexts.push(text);
-    }
+    sellText.addEventListener('pointerdown', function () {
+        alert("SOLD")
+    });
 
     /* ========= DEPOSIT CONTAINER ==========*/
     const rec = new PIXI.Graphics();
+    rec.fill(0x000000);
     // Calculate the position to center the rectangle
     const rectWidth = app.screen.width / 2;
     const rectHeight = app.screen.height / 1.5;
     const centerX = (app.screen.width - rectWidth) / 2;
     const centerY = (app.screen.height - rectHeight) / 2;
 
-
-
     // Draw a rectangle (x, y, width, height)
     rec.rect(centerX, centerY, rectWidth, rectHeight).fill(0x000000);
 
-    /* ============= DEPOSIT TEXT ============= */
+    /* ============= START TEXT ============= */
     const depositText = new PIXI.Text('START!', style);
     depositText.x = rec.getBounds().x + rectWidth / 2 - depositText.width / 2
     depositText.y = rec.getBounds().y + rectHeight - depositText.height;
@@ -167,9 +145,10 @@ const app = new PIXI.Application();
     document.body.appendChild(inputElement);
 
     // Handle input change event
+    let inputValue = 0;
     inputElement.addEventListener('input', function () {
         // Get the number from the input element
-        const inputValue = parseFloat(inputElement.value);
+        inputValue = parseFloat(inputElement.value);
 
         // Perform further operations with the inputValue
         console.log('Input Value:', inputValue);
@@ -205,10 +184,46 @@ const app = new PIXI.Application();
     cryptoChart.x = app.screen.width / 2 - cryptoChart.width / 2;
     cryptoChart.y = app.screen.height / 2 - cryptoChart.height / 2;
 
+    /* ============= LEFT SIDE TEXT ============= */
+    const leftSideTexts = [];
+
+    // Text content for each text element
+    const textContents = [
+        '2x',
+        '1.75x',
+        '1.5x',
+        '1.25x',
+        '1x',
+        '0.75x',
+        '0.5x',
+        '0.25x',
+        '0x',
+    ];
+
+    const totalTexts = textContents.length;
+
+    // Calculate the vertical spacing between texts
+    const verticalSpacing = cryptoChart.height / (totalTexts);
+
+    // Create and position each text element
+    for (let i = 0; i < totalTexts; i++) {
+        const text = new PIXI.Text(textContents[i], smallStyle);
+        text.anchor.x = 1;
+        text.x = cryptoChart.x - 10; // Adjust the x-coordinate to the left of the cryptoChart
+        text.y = cryptoChart.y + verticalSpacing * i; // Evenly spaced between top and bottom
+        leftSideTexts.push(text);
+    }
+
+    /* ========= DEPOSIT AMOUNT TO SCREEN ========= */
+    let depositAmount = new PIXI.Text(`Current Deposit: `, smallStyle);
+    depositAmount.x = cryptoChart.x;
+    depositAmount.y = timerContainer.y;
+
     /* ============= LAYERING ============= */
     app.stage.addChild(cryptoChart);
     app.stage.addChild(...leftSideTexts);
     app.stage.addChild(sellText);
+    app.stage.addChild(depositAmount);
     app.stage.addChild(timerContainer);
     app.stage.addChild(rocket);
     app.stage.addChild(rec)
@@ -218,6 +233,14 @@ const app = new PIXI.Application();
     depositText.addEventListener('pointerdown', function () {
         rec.visible = false;
         inputElement.style.display = 'none';
+
+        /* ========= DEPOSIT AMOUNT TO SCREEN ========= */
+        app.stage.removeChild(depositAmount);
+        depositAmount = new PIXI.Text(`Current Deposit: ${inputValue}`, smallStyle);
+        depositAmount.x = cryptoChart.x;
+        depositAmount.y = timerContainer.y;
+        app.stage.addChild(depositAmount);
+
         unblurGame();
 
         startGame();
@@ -245,6 +268,7 @@ const app = new PIXI.Application();
         rocket.filters = [blurFilter];
         timerContainer.filters = [blurFilter];
         sellText.filters = [blurFilter];
+        depositAmount.filters = [blurFilter];
     }
 
     function unblurGame() {
@@ -253,6 +277,7 @@ const app = new PIXI.Application();
         rocket.filters = [];
         timerContainer.filters = [];
         sellText.filters = [];
+        depositAmount.filters = [];
     }
 
     function resetGame() {
@@ -305,8 +330,10 @@ const app = new PIXI.Application();
 
         // Set the initial target Y position and interval to update it
         let targetY = Math.random() * app.screen.height;
-        let updateInterval = 150; // Update target every 1000ms (1 second)
+        let updateInterval = 175; // Update target every 1000ms (1 second)
         let lastUpdateTime = Date.now();
+        // Variable to track the desired rotation
+        let targetRotation = 0;
 
         yTicker.add(() => {
             // Current time
@@ -327,8 +354,12 @@ const app = new PIXI.Application();
                 let movementSpeed = 0.05; // Adjust this value for faster or slower movement
                 rocket.y += (targetY - rocket.y) * movementSpeed;
 
-                const movingUp = targetY < rocket.y;
-                rocket.scale.y = movingUp ? 0.5 : -0.5; // Flip the rocket vertically when moving up
+                // Determine the direction of movement and set the target rotation accordingly
+                targetRotation = targetY < rocket.y ? 0 : Math.PI; // 0 or 180 degrees in radians
+
+                // Gradually update the rotation for smoother flipping
+                let rotationInterpolationSpeed = 0.09; // Control the flipping speed
+                rocket.rotation += (targetRotation - rocket.rotation) * rotationInterpolationSpeed;
             } else {
                 yTicker.stop(); // Stop the ticker after the duration or if the game is over
             }
@@ -361,6 +392,4 @@ const app = new PIXI.Application();
             }
         }, 10); // Updating every 10 milliseconds
     }
-    unblurGame();
-    startGame();
 })()
