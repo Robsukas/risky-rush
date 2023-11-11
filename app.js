@@ -1,6 +1,6 @@
 const app = new PIXI.Application();
 (async () => {
-    await app.init({ background: '0x1099bb', resizeTo: window, preference: 'webgpu', interactive: 'true'});
+    await app.init({ background: 'ede6d5', resizeTo: window, preference: 'webgpu', interactive: 'true'});
 
     // do pixi things
     document.body.appendChild(app.canvas);
@@ -11,12 +11,9 @@ const app = new PIXI.Application();
     // center the sprite's anchor point
     player.anchor.set(0.5);
     // move the sprite to the center of the screen
-    player.x = app.screen.width / 2;
+    player.x = 50;
     player.y = app.screen.height / 2;
     // add sprite to stage
-    const test2 = app.stage.addChild(player);
-    test2.interactive = true;
-    test2.addEventListener('click', ()=>{alert("SOLD")});
 
 // text style
     const style = new PIXI.TextStyle({
@@ -29,11 +26,11 @@ const app = new PIXI.Application();
         dropShadow: {
             alpha: 1,
             angle: Math.PI / 6,
-            blur: 0,
+            blur: 4,
             color: "black",
-            distance: 5,
+            distance: 6,
         },
-        interactive: 'true'
+        align: 'center'
     });
 // Create a container
     const timerContainer = new PIXI.Container();
@@ -78,13 +75,82 @@ const app = new PIXI.Application();
     console.log(target.isInteractive());
     target.addEventListener('click', ()=>{alert("SOLD")});
 
-// Listen for animate update
-    app.ticker.add((ticker) => {
-        // delta is 1 if running at 100% performance
-        // creates frame-independent transformation
-        player.rotation += 0.005 * ticker.deltaTime;
-    });
+
 
     startCountdown(10000, timerText); // 10 seconds in milliseconds
+    function moveRocket() {
+        gsap.to(player, {
+            x: app.screen.width,
+            duration: 10,
+            ease: "none",
+            onComplete: function () {
+                player.x = 0;
+                moveRocket();
+            }
+        });
+
+        setInterval(() => {
+            const newY = Math.random() * app.screen.height;
+            const movingUp = newY < player.y;
+
+            player.scale.y = movingUp ? 1 : -1
+
+            gsap.to(player, {y: newY, duration: 0.4, ease: "none"});
+        }, 300);
+    }
+    moveRocket();
+
+    function createCryptoChart(maxX, maxY) {
+        const chartContainer = new PIXI.Container();
+
+        // Draw horizontal grid lines
+        for (let i = 0; i <= maxY; i += 20) {
+            const line = new PIXI.Graphics();
+            //line.moveTo(0, i);
+            //line.lineTo(maxX, i);
+            //line.rect(0, i, maxX, i);
+            line.rect(0, i, maxX, 1).fill(0x666666);
+            app.stage.addChild(line);
+        }
+        //rect(50, 50, 100, 1).fill(0xde3249);
+        // Draw vertical grid lines
+        for (let i = 0; i <= maxX; i += 20) {
+            const line = new PIXI.Graphics();
+            if (i === 0) {
+                line.stroke = {color : 0x000000, width : 2};
+            } else {
+                line.stroke = {color : 0x666666, width : 1};
+            }
+            line.rect(i, 0, 1, maxY).fill(0x666666);
+            app.stage.addChild(line);
+        }
+
+        // Create a line chart
+        const chart = new PIXI.Graphics();
+        const lineColor = 0x00FF00;
+        const lineWidth = 2;
+
+        chart.stroke = {color : lineColor, width : lineWidth};
+
+
+        app.stage.addChild(chart);
+
+        return chartContainer;
+    }
+
+// Set the maximum values for the X and Y axes
+    const maxX = app.screen.width;
+    const maxY = app.screen.height;
+
+// Add the crypto chart to the stage
+    const cryptoChart = createCryptoChart(maxX, maxY);
+    cryptoChart.x = app.screen.width / 2 - cryptoChart.width / 2;
+    cryptoChart.y = app.screen.height / 2 - cryptoChart.height / 2;
+
+    /* ============= LAYERING ============= */
+    app.stage.addChild(cryptoChart);
+    app.stage.addChild(playText);
+    app.stage.addChild(timerContainer);
+    app.stage.addChild(player);
 
 })()
