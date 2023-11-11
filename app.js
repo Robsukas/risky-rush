@@ -89,9 +89,7 @@ sellText.x = app.screen.width / 2 - (sellText.width / 2);
 sellText.y = app.screen.height - sellText.height + 15;
 sellText.eventMode = 'static';
 sellText.cursor = 'pointer';
-sellText.addEventListener('pointerdown', function () {
-    alert("SOLD")
-});
+
 
 /* ========= DEPOSIT CONTAINER ==========*/
 const rec = new PIXI.Graphics();
@@ -126,6 +124,10 @@ const instructionText = new PIXI.Text('Enter a number:', textStyle);
 instructionText.x = rec.getBounds().x + rectWidth / 2 - instructionText.width / 2;
 instructionText.y = rec.getBounds().y + instructionText.height * 3;
 
+let lastWin = new PIXI.Text('Last Win: 0', textStyle);
+lastWin.x = rec.getBounds().x + rectWidth / 2 - lastWin.width / 2;
+lastWin.y = rec.getBounds().y + lastWin.height * 8;
+
 // Calculate the bottom coordinate of the instruction text
 const instructionTextBottom = instructionText.y + instructionText.height + 20;
 
@@ -149,7 +151,8 @@ inputElement.style.height = `30px`;
 
 // Add the PIXI text and graphics to the stage
 rec.addChild(instructionText);
-rec.addChild(inputField)
+rec.addChild(inputField);
+rec.addChild(lastWin);
 
 // Add the HTML input element to the document body
 document.body.appendChild(inputElement);
@@ -348,9 +351,21 @@ function startGame() {
     moveRocket();
 }
 
+let conf = 0;
 function endGame() {
     isGameRunning = false;
     blurGame();
+
+    rec.removeChild(lastWin);
+    conf = 1 + (rocket.y - cryptoChart.y - cryptoChart.height / 2) / -300;
+    lastWin = new PIXI.Text(`Last Win: ${(conf * inputValue).toFixed(2)}     Win Conf: ${conf.toFixed(4)}`, textStyle);
+    lastWin.x = rec.getBounds().x + rectWidth / 2 - lastWin.width / 2;
+    lastWin.y = rec.getBounds().y + lastWin.height * 8;
+    rec.addChild(lastWin);
+
+    rec.visible = true;
+    inputElement.style.display = 'block';
+
 }
 
 function moveRocket() {
