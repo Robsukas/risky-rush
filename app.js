@@ -12,11 +12,17 @@
     // center the sprite's anchor point
     bunny.anchor.set(0.5);
 
+
     // move the sprite to the center of the screen
     bunny.x = app.screen.width / 2;
     bunny.y = app.screen.height / 2;
 
-    app.stage.addChild(bunny);
+    // event listener tests:
+    // https://github.com/pixijs/pixijs/blob/c04c09c50874fef9296555af23e25fe58cc808a9/packages/events/test/EventBoundary.tests.ts#L31
+    const target = app.stage.addChild(bunny);
+    target.interactive = true;
+    console.log(target.isInteractive());
+    target.addEventListener('click', ()=>{alert("hello")});
 
     // Listen for animate update
     app.ticker.add((ticker) =>
