@@ -25,8 +25,8 @@ app.stage.sortableChildren = true;
 
 /* ============= CURSOR ============= */
 
-const explosionTexture = PIXI.Texture.from('exp.png');
-const flameTexture = PIXI.Texture.from('flame.png');
+const explosionTexture = PIXI.Texture.from('images/exp.png');
+const flameTexture = PIXI.Texture.from('images/flame.png');
 
 const flameEffect = new PIXI.Sprite(flameTexture);
 flameEffect.anchor.set(0.5);
