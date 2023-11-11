@@ -29,6 +29,7 @@ rocket.anchor.set(0.5);
 rocket.x = 50;
 rocket.y = app.screen.height / 2;
 rocket.scale.set(0.5, 0.5);
+rocket.rotation = Math.PI / 2;
 
 /* ============= TEXT STYLE ============= */
 const style = new PIXI.TextStyle({
@@ -331,6 +332,8 @@ function moveRocket() {
     let targetY = Math.random() * app.screen.height;
     let updateInterval = 150; // Update target every 1000ms (1 second)
     let lastUpdateTime = Date.now();
+    // Variable to track the desired rotation (0 or 180 degrees)
+    let targetRotation = 0;
 
     yTicker.add(() => {
         // Current time
@@ -351,8 +354,12 @@ function moveRocket() {
             let movementSpeed = 0.05; // Adjust this value for faster or slower movement
             rocket.y += (targetY - rocket.y) * movementSpeed;
 
-            const movingUp = targetY < rocket.y;
-            rocket.scale.y = movingUp ? 0.5 : -0.5; // Flip the rocket vertically when moving up
+            // Determine the direction of movement and set the target rotation accordingly
+            targetRotation = targetY < rocket.y ? 0 : Math.PI; // 0 or 180 degrees in radians
+
+            // Gradually update the rotation for smoother flipping
+            let rotationInterpolationSpeed = 0.09; // Control the flipping speed
+            rocket.rotation += (targetRotation - rocket.rotation) * rotationInterpolationSpeed;
         } else {
             yTicker.stop(); // Stop the ticker after the duration or if the game is over
         }
