@@ -200,6 +200,7 @@ blurGame();
 
 depositText.addEventListener('pointerdown', function () {
     rec.visible = false;
+    inputElement.style.display = 'none';
     unblurGame();
 
     startGame();
