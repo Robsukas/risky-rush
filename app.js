@@ -12,6 +12,7 @@ const initialMultipier = 1;
 const minMultiplier = 0.01;
 const maxMultiplier = 30;
 const blurFilter = new PIXI.filters.BlurFilter();
+const zoomBlurFilter = new PIXI.filters.ZoomBlurFilter({radius: app.screen.height / 3, strength: 0.08, innerRadius: 100});
 /* ============= GLOBAL VARIABLES ============= */
 let playerMoney = initialMoney;
 let currentBet = 0;
@@ -146,11 +147,11 @@ ticker.start();
 
 /* ============= ROCKET ============= */
 // create a new Sprite from an image path
-const rocket = PIXI.Sprite.from("rocket.png");
+const rocket = PIXI.Sprite.from("images/rocket.png");
 // center the sprite's anchor point
 rocket.anchor.set(0.5);
 // move the sprite to the center of the screen
-rocket.x = 50;
+rocket.x = 100;
 rocket.y = app.screen.height / 2;
 rocket.scale.set(0.5, 0.5);
 rocket.rotation = Math.PI / 2;
@@ -190,8 +191,18 @@ const smallStyle = new PIXI.TextStyle({
 
 /* ============= TIMER ============= */
 const timerContainer = new PIXI.Container();
+
+// Convert milliseconds to seconds
+let durationSeconds = roundTime / 1000;
+
+// Set the desired number of decimal places
+const decimalPlaces = 2;
+
+// Format the duration as a string with the specified decimal places
+const formattedDuration = durationSeconds.toFixed(decimalPlaces);
+
 // Create a text object for the timer
-const timerText = new PIXI.Text('5.00', style);
+const timerText = new PIXI.Text(formattedDuration, style);
 timerText.anchor.set(0.5);
 timerContainer.x = app.screen.width / 2;
 timerContainer.y = timerText.height / 2;
@@ -203,9 +214,6 @@ sellText.x = app.screen.width / 2 - (sellText.width / 2);
 sellText.y = app.screen.height - sellText.height + 15;
 sellText.eventMode = 'static';
 sellText.cursor = 'pointer';
-sellText.addEventListener('pointerdown', function () {
-    alert("SOLD")
-});
 
 /* ========= DEPOSIT CONTAINER ==========*/
 const rec = new PIXI.Graphics();
@@ -240,6 +248,10 @@ const instructionText = new PIXI.Text('Enter a number:', textStyle);
 instructionText.x = rec.getBounds().x + rectWidth / 2 - instructionText.width / 2;
 instructionText.y = rec.getBounds().y + instructionText.height * 3;
 
+let lastWin = new PIXI.Text('Last Win: 0', textStyle);
+lastWin.x = rec.getBounds().x + rectWidth / 2 - lastWin.width / 2;
+lastWin.y = rec.getBounds().y + lastWin.height * 8;
+
 // Calculate the bottom coordinate of the instruction text
 const instructionTextBottom = instructionText.y + instructionText.height + 20;
 
@@ -263,7 +275,8 @@ inputElement.style.height = `30px`;
 
 // Add the PIXI text and graphics to the stage
 rec.addChild(instructionText);
-rec.addChild(inputField)
+rec.addChild(inputField);
+rec.addChild(lastWin);
 
 // Add the HTML input element to the document body
 document.body.appendChild(inputElement);
@@ -427,7 +440,6 @@ sellText.addEventListener('pointerdown', function () {
 */
 
 
-
 /* ============= GAME LOGIC FUNCTIONS ============= */
 function blurGame() {
     cryptoChart.filters = [blurFilter];
@@ -440,9 +452,10 @@ function blurGame() {
 }
 
 function unblurGame() {
-    cryptoChart.filters = [];
     multiplierLabels.forEach(label => (label.filters = []));
     timeLabels.forEach(label => (label.filters = []));
+    cryptoChart.filters = [];
+    cryptoChart.filters = [zoomBlurFilter];
     rocket.filters = [];
     timerContainer.filters = [];
     sellText.filters = [];
@@ -462,16 +475,28 @@ function startGame() {
     moveRocket();
 }
 
+let conf = 0;
 function endGame() {
     isGameRunning = false;
     blurGame();
+
+    rec.removeChild(lastWin);
+    conf = 1 + (rocket.y - cryptoChart.y - cryptoChart.height / 2) / -300;
+    lastWin = new PIXI.Text(`Last Win: ${(conf * inputValue).toFixed(2)}     Win Conf: ${conf.toFixed(4)}`, textStyle);
+    lastWin.x = rec.getBounds().x + rectWidth / 2 - lastWin.width / 2;
+    lastWin.y = rec.getBounds().y + lastWin.height * 8;
+    rec.addChild(lastWin);
+
+    rec.visible = true;
+    inputElement.style.display = 'block';
+
 }
 
 function moveRocket() {
     // Reset rocket x
     rocket.x = cryptoChart.x;
     const x1 = rocket.x;
-    const x2 = maxX + 20;
+    const x2 = maxX + 95;
     let duration = roundTime;
 
     // Start time
@@ -488,7 +513,10 @@ function moveRocket() {
 
         // Update sprite's position
         if (elapsedTime < duration && isGameRunning) {
+            // Update sprite's position
             rocket.x = x1 + (x2 - x1) * (elapsedTime / duration);
+            // Update zoom blur filter position
+            zoomBlurFilter.center = [rocket.x - rocket.width, rocket.y - rocket.height];
         } else {
             xTicker.stop(); // Stop the ticker after the duration or if game over
         }
@@ -513,7 +541,10 @@ function moveRocket() {
 
         // Check if it's time to update the target Y position
         if (currentTime - lastUpdateTime > updateInterval) {
-            targetY = Math.random() * app.screen.height;
+            // Calculate the maximum Y value to stay within the screen
+            const chartMinY = 100; // Adjust this based on your actual minimum Y value
+            const chartMaxY = app.screen.height - 100
+            targetY = Math.random() * (chartMaxY - chartMinY) + chartMinY;
             lastUpdateTime = currentTime;
         }
 
