@@ -1,12 +1,12 @@
+const app = new PIXI.Application();
 (async () => {
-    const app = new PIXI.Application();
     await app.init({ background: '0x1099bb', resizeTo: window, preference: 'webgpu' });
 
     // do pixi things
     document.body.appendChild(app.canvas);
 
 
-    const tex = await PIXI.Assets.load("https://pixijs.com/assets/bunny.png");
+    const tex = await PIXI.Assets.load("rocket.png");
     const player = PIXI.Sprite.from(tex);
     // center the sprite's anchor point
     player.anchor.set(0.5);
@@ -66,18 +66,17 @@
     const playText = new PIXI.Text({text: 'SELL!', style});
     playText.x = app.screen.width / 2 - (playText.width / 2);
     playText.y = app.screen.height - playText.height;
-    playText.eventMode = 'static';
-    playText.cursor = 'pointer';
-    playText.addEventListener('pointerdown', function () {
-        alert("SOLD")
-    });
-    app.stage.addChild(playText);
+//    playText.eventMode = 'static';
+//    playText.cursor = 'pointer';
+    const target = app.stage.addChild(playText);
+    target.interactive = true;
+    target.addEventListener('click', ()=>{alert("SOLD")});
 
 // Listen for animate update
-    app.ticker.add((delta) => {
+    app.ticker.add((ticker) => {
         // delta is 1 if running at 100% performance
         // creates frame-independent transformation
-        player.rotation += 0.005 * delta;
+        player.rotation += 0.005 * ticker.deltaTime;
     });
 
     startCountdown(10000, timerText); // 10 seconds in milliseconds
