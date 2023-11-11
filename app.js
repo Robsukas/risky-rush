@@ -6,7 +6,7 @@ const app = new PIXI.Application({
 document.body.appendChild(app.view);
 
 /* ============= GLOBAL CONSTANTS ============= */
-const roundTime = 5_000; // in milliseconds
+const roundTime = 10_000; // in milliseconds
 const initialMoney = 100; // dollars
 const initialMultipier = 1;
 const minMultiplier = 0.01;
@@ -27,7 +27,7 @@ const rocket = PIXI.Sprite.from("images/rocket.png");
 // center the sprite's anchor point
 rocket.anchor.set(0.5);
 // move the sprite to the center of the screen
-rocket.x = 50;
+rocket.x = 100;
 rocket.y = app.screen.height / 2;
 rocket.scale.set(0.5, 0.5);
 rocket.rotation = Math.PI / 2;
@@ -67,45 +67,29 @@ const smallStyle = new PIXI.TextStyle({
 
 /* ============= TIMER ============= */
 const timerContainer = new PIXI.Container();
+
+// Convert milliseconds to seconds
+let durationSeconds = roundTime / 1000;
+
+// Set the desired number of decimal places
+const decimalPlaces = 2;
+
+// Format the duration as a string with the specified decimal places
+const formattedDuration = durationSeconds.toFixed(decimalPlaces);
+
 // Create a text object for the timer
-const timerText = new PIXI.Text('5.00', style);
+const timerText = new PIXI.Text(formattedDuration, style);
 timerText.anchor.set(0.5);
 timerContainer.x = app.screen.width / 2;
 timerContainer.y = timerText.height / 2;
 timerContainer.addChild(timerText);
 
-/* ============= PLAY TEXT ============= */
+/* ============= SELL TEXT ============= */
 const sellText = new PIXI.Text('SELL!', style);
 sellText.x = app.screen.width / 2 - (sellText.width / 2);
-sellText.y = app.screen.height - sellText.height;
+sellText.y = app.screen.height - sellText.height + 15;
 sellText.eventMode = 'static';
 sellText.cursor = 'pointer';
-
-/* ============= LEFT SIDE TEXT ============= */
-const leftSideTexts = [];
-
-// Text content for each text element
-const textContents = [
-    '2x',
-    '1.75x',
-    '1.5x',
-    '1.25x',
-    '1x',
-    '0.75x',
-    '0.5x',
-    '0.25x',
-    '0x',
-];
-
-// Create and position each text element
-for (let i = 0; i < textContents.length; i++) {
-    const text = new PIXI.Text(textContents[i], smallStyle);
-    text.anchor.x = 1;
-    text.x = 85; // Adjust the x-coordinate as needed
-    text.y = 85 + i * 49; // Adjust the y-coordinate for vertical spacing
-    leftSideTexts.push(text);
-}
-
 
 /* ========= DEPOSIT CONTAINER ==========*/
 const rec = new PIXI.Graphics();
@@ -120,7 +104,7 @@ const centerY = (app.screen.height - rectHeight) / 2;
 rec.drawRect(centerX, centerY, rectWidth, rectHeight);
 rec.endFill();
 
-/* ============= DEPOSIT TEXT ============= */
+/* ============= START TEXT ============= */
 const depositText = new PIXI.Text('START!', style);
 depositText.x = rec.getBounds().x + rectWidth / 2 - depositText.width / 2
 depositText.y = rec.getBounds().y + rectHeight - depositText.height;
@@ -139,6 +123,10 @@ const textStyle = new PIXI.TextStyle({
 const instructionText = new PIXI.Text('Enter a number:', textStyle);
 instructionText.x = rec.getBounds().x + rectWidth / 2 - instructionText.width / 2;
 instructionText.y = rec.getBounds().y + instructionText.height * 3;
+
+let lastWin = new PIXI.Text('Last Win: 0', textStyle);
+lastWin.x = rec.getBounds().x + rectWidth / 2 - lastWin.width / 2;
+lastWin.y = rec.getBounds().y + lastWin.height * 8;
 
 // Calculate the bottom coordinate of the instruction text
 const instructionTextBottom = instructionText.y + instructionText.height + 20;
@@ -163,7 +151,8 @@ inputElement.style.height = `30px`;
 
 // Add the PIXI text and graphics to the stage
 rec.addChild(instructionText);
-rec.addChild(inputField)
+rec.addChild(inputField);
+rec.addChild(lastWin);
 
 // Add the HTML input element to the document body
 document.body.appendChild(inputElement);
@@ -230,10 +219,65 @@ const cryptoChart = createCryptoChart(maxX, maxY);
 cryptoChart.x = app.screen.width / 2 - cryptoChart.width / 2;
 cryptoChart.y = app.screen.height / 2 - cryptoChart.height / 2;
 
+/* ============= MULTIPLIER LABELS ============= */
+const multiplierLabels = [];
+
+// Text content for each multiplier label
+const multiplierContents = [
+    '2x',
+    '1.75x',
+    '1.5x',
+    '1.25x',
+    '1x',
+    '0.75x',
+    '0.5x',
+    '0.25x',
+    '0x',
+];
+
+const totalMultipliers = multiplierContents.length;
+
+// Calculate the vertical spacing between multiplier labels
+const verticalSpacing = cryptoChart.height / (totalMultipliers);
+
+// Create and position each multiplier label on the left side
+for (let i = 0; i < totalMultipliers; i++) {
+    const label = new PIXI.Text(multiplierContents[i], smallStyle);
+    label.anchor.x = 1;
+    label.x = cryptoChart.x - 10; // Adjust the x-coordinate to the left of the cryptoChart
+    label.y = cryptoChart.y + verticalSpacing * i; // Evenly spaced between top and bottom
+    multiplierLabels.push(label);
+}
+
+/* ============= TIME LABELS ============= */
+const timeLabels = [];
+
+// Total seconds for the time labels
+const totalSeconds = 10;
+
+// Calculate the horizontal spacing between time labels
+const horizontalSpacing = cryptoChart.width / totalSeconds;
+
+// Create and position each time label at the bottom of the chart
+for (let i = 0; i <= totalSeconds; i++) {
+    const timeLabel = new PIXI.Text(`${totalSeconds - i}s`, smallStyle);
+    timeLabel.anchor.x = 0.5;
+    timeLabel.x = cryptoChart.x + horizontalSpacing * i;
+    timeLabel.y = cryptoChart.y + cryptoChart.height - 5; // Adjust the y-coordinate below the chart
+    timeLabels.push(timeLabel);
+}
+
+/* ========= DEPOSIT AMOUNT TO SCREEN ========= */
+let depositAmount = new PIXI.Text(`Current Deposit: `, smallStyle);
+depositAmount.x = cryptoChart.x;
+depositAmount.y = timerContainer.y;
+
 /* ============= LAYERING ============= */
 app.stage.addChild(cryptoChart);
-app.stage.addChild(...leftSideTexts);
+app.stage.addChild(...multiplierLabels);
+app.stage.addChild(...timeLabels);
 app.stage.addChild(sellText);
+app.stage.addChild(depositAmount);
 app.stage.addChild(timerContainer);
 app.stage.addChild(rocket);
 app.stage.addChild(rec)
@@ -244,7 +288,9 @@ depositText.addEventListener('pointerdown', function () {
     rec.visible = false;
     inputElement.style.display = 'none';
 
-    const depositAmount = new PIXI.Text(`Current Deposit: ${inputValue}`, smallStyle);
+    /* ========= DEPOSIT AMOUNT TO SCREEN ========= */
+    app.stage.removeChild(depositAmount);
+    depositAmount = new PIXI.Text(`Current Deposit: ${inputValue}`, smallStyle);
     depositAmount.x = cryptoChart.x;
     depositAmount.y = timerContainer.y;
     app.stage.addChild(depositAmount);
@@ -273,18 +319,24 @@ sellText.addEventListener('pointerdown', function () {
 /* ============= GAME LOGIC FUNCTIONS ============= */
 function blurGame() {
     cryptoChart.filters = [blurFilter];
-    leftSideTexts.forEach(text => (text.filters = [blurFilter]));
+    multiplierLabels.forEach(label => (label.filters = [blurFilter]));
+    timeLabels.forEach(label => (label.filters = [blurFilter]));
     rocket.filters = [blurFilter];
     timerContainer.filters = [blurFilter];
     sellText.filters = [blurFilter];
+    depositAmount.filters = [blurFilter]
 }
 
 function unblurGame() {
-    cryptoChart.filters = [zoomBlurFilter];
+    multiplierLabels.forEach(label => (label.filters = []));
+    timeLabels.forEach(label => (label.filters = []));
     leftSideTexts.forEach(text => (text.filters = []));
+    cryptoChart.filters = [];
+    cryptoChart.filters = [zoomBlurFilter];
     rocket.filters = [];
     timerContainer.filters = [];
     sellText.filters = [];
+    depositAmount.filters = [];
 }
 
 function resetGame() {
@@ -300,16 +352,28 @@ function startGame() {
     moveRocket();
 }
 
+let conf = 0;
 function endGame() {
     isGameRunning = false;
     blurGame();
+
+    rec.removeChild(lastWin);
+    conf = 1 + (rocket.y - cryptoChart.y - cryptoChart.height / 2) / -300;
+    lastWin = new PIXI.Text(`Last Win: ${(conf * inputValue).toFixed(2)}     Win Conf: ${conf.toFixed(4)}`, textStyle);
+    lastWin.x = rec.getBounds().x + rectWidth / 2 - lastWin.width / 2;
+    lastWin.y = rec.getBounds().y + lastWin.height * 8;
+    rec.addChild(lastWin);
+
+    rec.visible = true;
+    inputElement.style.display = 'block';
+
 }
 
 function moveRocket() {
     // Reset rocket x
     rocket.x = cryptoChart.x;
     const x1 = rocket.x;
-    const x2 = maxX + 20;
+    const x2 = maxX + 95;
     let duration = roundTime;
 
     // Start time
@@ -324,6 +388,7 @@ function moveRocket() {
         // Calculate elapsed time in seconds
         let elapsedTime = (currentTime - startTime);
 
+        // Update sprite's position
         if (elapsedTime < duration && isGameRunning) {
             // Update sprite's position
             rocket.x = x1 + (x2 - x1) * (elapsedTime / duration);
@@ -353,7 +418,10 @@ function moveRocket() {
 
         // Check if it's time to update the target Y position
         if (currentTime - lastUpdateTime > updateInterval) {
-            targetY = Math.random() * app.screen.height;
+            // Calculate the maximum Y value to stay within the screen
+            const chartMinY = 100; // Adjust this based on your actual minimum Y value
+            const chartMaxY = app.screen.height - 100
+            targetY = Math.random() * (chartMaxY - chartMinY) + chartMinY;
             lastUpdateTime = currentTime;
         }
 
