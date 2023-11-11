@@ -11,6 +11,7 @@ const initialMoney = 100; // dollars
 const initialMultipier = 1;
 const minMultiplier = 0.01;
 const maxMultiplier = 30;
+const blurFilter = new PIXI.filters.BlurFilter();
 /* ============= GLOBAL VARIABLES ============= */
 let playerMoney = initialMoney;
 let currentBet = 0;
@@ -55,22 +56,22 @@ timerContainer.y = timerText.height / 2;
 timerContainer.addChild(timerText);
 
 /* ============= PLAY TEXT ============= */
-const playText = new PIXI.Text('SELL!', style);
-playText.x = app.screen.width / 2 - (playText.width / 2);
-playText.y = app.screen.height - playText.height;
-playText.eventMode = 'static';
-playText.cursor = 'pointer';
-playText.addEventListener('pointerdown', function () {
+const sellText = new PIXI.Text('SELL!', style);
+sellText.x = app.screen.width / 2 - (sellText.width / 2);
+sellText.y = app.screen.height - sellText.height;
+sellText.eventMode = 'static';
+sellText.cursor = 'pointer';
+sellText.addEventListener('pointerdown', function () {
     alert("SOLD")
 });
 
 
-/* ========= deposit ==========*/
+/* ========= DEPOSIT CONTAINER ==========*/
 const rec = new PIXI.Graphics();
 rec.beginFill(0x000000);
 // Calculate the position to center the rectangle
-const rectWidth = 1000;
-const rectHeight = 600;
+const rectWidth = app.screen.width / 2;
+const rectHeight = app.screen.height / 1.5;
 const centerX = (app.screen.width - rectWidth) / 2;
 const centerY = (app.screen.height - rectHeight) / 2;
 
@@ -78,13 +79,13 @@ const centerY = (app.screen.height - rectHeight) / 2;
 rec.drawRect(centerX, centerY, rectWidth, rectHeight);
 rec.endFill();
 
-/* ============= deposit TEXT ============= */
+/* ============= DEPOSIT TEXT ============= */
 const depositText = new PIXI.Text('START!', style);
-depositText.x = rec.width / 2 + (depositText.width / 2);
-depositText.y = rec.height - depositText.height;
+depositText.x = rec.getBounds().x + rectWidth / 2 - depositText.width / 2
+depositText.y = rec.getBounds().y + rectHeight - depositText.height;
 depositText.eventMode = 'static';
 depositText.cursor = 'pointer';
-
+rec.addChild(depositText);
 
 /* ============= CRYPTO CHART ============= */
 function createCryptoChart(maxX, maxY) {
@@ -139,17 +140,16 @@ cryptoChart.y = app.screen.height / 2 - cryptoChart.height / 2;
 
 /* ============= LAYERING ============= */
 app.stage.addChild(cryptoChart);
-app.stage.addChild(playText);
+app.stage.addChild(sellText);
 app.stage.addChild(timerContainer);
 app.stage.addChild(rocket);
 app.stage.addChild(rec)
 
-
-rec.addChild(depositText);
+blurGame();
 
 depositText.addEventListener('pointerdown', function () {
-
-    app.stage.removeChild(rec);
+    rec.visible = false;
+    unblurGame();
 
     startGame();
 });
@@ -169,6 +169,20 @@ depositText.addEventListener('pointerdown', function () {
 
 
 /* ============= GAME LOGIC FUNCTIONS ============= */
+function blurGame() {
+    cryptoChart.filters = [blurFilter];
+    rocket.filters = [blurFilter];
+    timerContainer.filters = [blurFilter];
+    sellText.filters = [blurFilter];
+}
+
+function unblurGame() {
+    cryptoChart.filters = [];
+    rocket.filters = [];
+    timerContainer.filters = [];
+    sellText.filters = [];
+}
+
 function resetGame() {
     currentTime = roundTime;
     lastMultiplier = initialMultipier;
@@ -192,7 +206,7 @@ function moveRocket() {
     // x-movement
     rocket.x = cryptoChart.x;
     gsap.to(rocket, {
-        x: maxY + 20,
+        x: maxX + 20,
         duration: roundTime / 1000,
         ease: "none",
         onComplete: () => {
