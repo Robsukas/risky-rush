@@ -123,6 +123,10 @@ const app = new PIXI.Application();
     instructionText.y = rec.getBounds().y + instructionText.height * 3;
     instructionText.style = textStyle;
 
+    let lastWin = new PIXI.Text('Last Win: 0', textStyle);
+    lastWin.x = rec.getBounds().x + rectWidth / 2 - lastWin.width / 2;
+    lastWin.y = rec.getBounds().y + lastWin.height * 8;
+
     // Calculate the bottom coordinate of the instruction text
     const instructionTextBottom = instructionText.y + instructionText.height + 20;
 
@@ -232,6 +236,7 @@ const app = new PIXI.Application();
     app.stage.addChild(depositText);
     app.stage.addChild(inputField);
     app.stage.addChild(instructionText);
+    app.stage.addChild(lastWin);
 
     blurGame();
 
@@ -298,10 +303,23 @@ const app = new PIXI.Application();
         moveRocket();
     }
 
+    let conf = 0;
     function endGame() {
         isGameRunning = false;
         blurGame();
+
+        app.stage.removeChild(lastWin);
+        conf = 1 + (rocket.y - cryptoChart.y - cryptoChart.height / 2) / -300;
+        lastWin = new PIXI.Text(`Last Win: ${(conf * inputValue).toFixed(2)}     Win Conf: ${conf.toFixed(4)}`, textStyle);
+        lastWin.x = rec.getBounds().x + rectWidth / 2 - lastWin.width / 2;
+        lastWin.y = rec.getBounds().y + lastWin.height * 8;
+        app.stage.addChild(lastWin);
+
+        rec.visible = true;
+        inputElement.style.display = 'block';
     }
+
+
 
     function moveRocket() {
         //Reset rocket x
