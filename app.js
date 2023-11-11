@@ -26,7 +26,7 @@ const rocket = PIXI.Sprite.from("rocket.png");
 // center the sprite's anchor point
 rocket.anchor.set(0.5);
 // move the sprite to the center of the screen
-rocket.x = 50;
+rocket.x = 100;
 rocket.y = app.screen.height / 2;
 rocket.scale.set(0.5, 0.5);
 rocket.rotation = Math.PI / 2;
@@ -66,8 +66,18 @@ const smallStyle = new PIXI.TextStyle({
 
 /* ============= TIMER ============= */
 const timerContainer = new PIXI.Container();
+
+// Convert milliseconds to seconds
+let durationSeconds = roundTime / 1000;
+
+// Set the desired number of decimal places
+const decimalPlaces = 2;
+
+// Format the duration as a string with the specified decimal places
+const formattedDuration = durationSeconds.toFixed(decimalPlaces);
+
 // Create a text object for the timer
-const timerText = new PIXI.Text('5.00', style);
+const timerText = new PIXI.Text(formattedDuration, style);
 timerText.anchor.set(0.5);
 timerContainer.x = app.screen.width / 2;
 timerContainer.y = timerText.height / 2;
