@@ -20,6 +20,63 @@ let lastMultiplier = initialMultipier;
 let currentMultiplier = initialMultipier;
 let isGameRunning = false;
 
+app.stage.sortableChildren = true;
+
+/* ============= CURSOR ============= */
+
+// Load the texture for the cursor
+const cursorTexture = PIXI.Texture.from('star.png');
+
+// Create a sprite for the cursor using the texture
+const cursorTracker = new PIXI.Sprite(cursorTexture);
+
+// Optionally, set the anchor to the center of the sprite
+cursorTracker.anchor.set(0.5);
+
+// Set zIndex and add the sprite to the stage
+cursorTracker.zIndex = 1000;
+app.stage.addChild(cursorTracker);
+
+// Hide the default cursor (optional)
+app.view.style.cursor = 'none';
+
+// Update the cursor sprite position on mouse move
+app.view.addEventListener('mousemove', (event) => {
+    const rect = app.view.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // Update the position of the cursor sprite
+    cursorTracker.x = x;
+    cursorTracker.y = y;
+});
+
+// Animation logic remains the same
+let scaleDirection = 1;
+const maxScale = 1.5; // Maximum scale
+const minScale = 0.5; // Minimum scale
+const scaleSpeed = 0.01; // Speed of scaling
+
+const rotationSpeed = 0.1; // Speed of rotation
+
+// Create a ticker for the animation loop
+const ticker = new PIXI.Ticker();
+ticker.add(() => {
+    // Update scale
+    cursorTracker.scale.x += scaleSpeed * scaleDirection;
+    cursorTracker.scale.y += scaleSpeed * scaleDirection;
+
+    // Reverse direction if limits are reached
+    if (cursorTracker.scale.x > maxScale || cursorTracker.scale.x < minScale) {
+        scaleDirection *= -1;
+    }
+
+    cursorTracker.rotation += rotationSpeed;
+});
+
+// Start the ticker
+ticker.start();
+
 /* ============= ROCKET ============= */
 // create a new Sprite from an image path
 const rocket = PIXI.Sprite.from("rocket.png");
