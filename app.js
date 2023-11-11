@@ -71,7 +71,7 @@ timerContainer.x = app.screen.width / 2;
 timerContainer.y = timerText.height / 2;
 timerContainer.addChild(timerText);
 
-/* ============= PLAY TEXT ============= */
+/* ============= SELL TEXT ============= */
 const sellText = new PIXI.Text('SELL!', style);
 sellText.x = app.screen.width / 2 - (sellText.width / 2);
 sellText.y = app.screen.height - sellText.height;
@@ -81,30 +81,7 @@ sellText.addEventListener('pointerdown', function () {
     alert("SOLD")
 });
 
-/* ============= LEFT SIDE TEXT ============= */
-const leftSideTexts = [];
 
-// Text content for each text element
-const textContents = [
-    '2x',
-    '1.75x',
-    '1.5x',
-    '1.25x',
-    '1x',
-    '0.75x',
-    '0.5x',
-    '0.25x',
-    '0x',
-];
-
-// Create and position each text element
-for (let i = 0; i < textContents.length; i++) {
-    const text = new PIXI.Text(textContents[i], smallStyle);
-    text.anchor.x = 1;
-    text.x = 85; // Adjust the x-coordinate as needed
-    text.y = 85 + i * 49; // Adjust the y-coordinate for vertical spacing
-    leftSideTexts.push(text);
-}
 
 
 /* ========= DEPOSIT CONTAINER ==========*/
@@ -120,7 +97,7 @@ const centerY = (app.screen.height - rectHeight) / 2;
 rec.drawRect(centerX, centerY, rectWidth, rectHeight);
 rec.endFill();
 
-/* ============= DEPOSIT TEXT ============= */
+/* ============= START TEXT ============= */
 const depositText = new PIXI.Text('START!', style);
 depositText.x = rec.getBounds().x + rectWidth / 2 - depositText.width / 2
 depositText.y = rec.getBounds().y + rectHeight - depositText.height;
@@ -229,6 +206,35 @@ const cryptoChart = createCryptoChart(maxX, maxY);
 cryptoChart.x = app.screen.width / 2 - cryptoChart.width / 2;
 cryptoChart.y = app.screen.height / 2 - cryptoChart.height / 2;
 
+/* ============= LEFT SIDE TEXT ============= */
+const leftSideTexts = [];
+
+// Text content for each text element
+const textContents = [
+    '2x',
+    '1.75x',
+    '1.5x',
+    '1.25x',
+    '1x',
+    '0.75x',
+    '0.5x',
+    '0.25x',
+    '0x',
+];
+
+const totalTexts = textContents.length;
+
+// Calculate the vertical spacing between texts
+const verticalSpacing = cryptoChart.height / (totalTexts);
+
+// Create and position each text element
+for (let i = 0; i < totalTexts; i++) {
+    const text = new PIXI.Text(textContents[i], smallStyle);
+    text.anchor.x = 1;
+    text.x = cryptoChart.x - 10; // Adjust the x-coordinate to the left of the cryptoChart
+    text.y = cryptoChart.y + verticalSpacing * i; // Evenly spaced between top and bottom
+    leftSideTexts.push(text);
+}
 
 /* ============= LAYERING ============= */
 app.stage.addChild(cryptoChart);
