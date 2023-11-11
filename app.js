@@ -22,6 +22,94 @@ let lastMultiplier = initialMultipier;
 let currentMultiplier = initialMultipier;
 let isGameRunning = false;
 
+app.stage.sortableChildren = true;
+
+/* ============= CURSOR ============= */
+
+const explosionTexture = PIXI.Texture.from('images/exp.png');
+const cursorTexture = PIXI.Texture.from('images/star.png');
+const cursorTracker = new PIXI.Sprite(cursorTexture);
+cursorTracker.anchor.set(0.5);
+cursorTracker.zIndex = 1000;
+app.stage.addChild(cursorTracker);
+
+// Hide the default cursor (optional)
+app.view.style.cursor = 'none';
+
+// Animation logic remains the same
+let scaleDirection = 1;
+const maxScale = 1.5;
+const minScale = 0.5;
+const scaleSpeed = 0.05;
+const rotationSpeed = 0.1;
+
+// Create a ticker for the animation loop
+const ticker = new PIXI.Ticker();
+ticker.add(() => {
+    // Update scale
+    cursorTracker.scale.x += scaleSpeed * scaleDirection;
+    cursorTracker.scale.y += scaleSpeed * scaleDirection;
+
+    // Reverse direction if limits are reached
+    if (cursorTracker.scale.x > maxScale || cursorTracker.scale.x < minScale) {
+        scaleDirection *= -1;
+    }
+
+    cursorTracker.rotation += rotationSpeed;
+});
+
+function createExplosion(x, y) {
+    const explosion = new PIXI.Sprite(explosionTexture);
+    explosion.anchor.set(0.5);
+    explosion.position.set(x, y);
+    explosion.scale.set(0.1); // Start small
+    app.stage.addChild(explosion);
+
+    // Animate the explosion
+    let scale = 0.1;
+    const maxScale = 0.2; // Maximum scale of explosion
+    const scaleSpeed = 0.05; // Speed of scaling up
+
+    const explosionTicker = new PIXI.Ticker();
+    explosionTicker.add(() => {
+        scale += scaleSpeed;
+        explosion.scale.set(scale);
+
+        // Once the explosion reaches max size, remove it
+        if (explosion.scale.x >= maxScale) {
+            explosionTicker.stop();
+            app.stage.removeChild(explosion);
+        }
+    });
+    explosionTicker.start();
+}
+
+
+
+// Handle mouse click event
+app.view.addEventListener('click', (event) => {
+    const rect = app.view.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // Create an explosion at the click position
+    createExplosion(x, y);
+});
+
+// Update the cursor sprite position on mouse move
+app.view.addEventListener('mousemove', (event) => {
+    const rect = app.view.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    cursorTracker.x = x;
+    cursorTracker.y = y;
+});
+
+app.stage.sortableChildren = true;
+
+ticker.start();
+
 /* ============= ROCKET ============= */
 // create a new Sprite from an image path
 const rocket = PIXI.Sprite.from("images/rocket.png");
