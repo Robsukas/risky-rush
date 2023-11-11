@@ -107,6 +107,55 @@ depositText.y = rec.height - depositText.height;
 depositText.eventMode = 'static';
 depositText.cursor = 'pointer';
 
+// Create a PIXI.Text for instructions
+const textStyle = new PIXI.TextStyle({
+    fontFamily: 'Arial',
+    fontSize: 30,
+    fill: 0xFFFFFF,
+});
+
+/* ======== INSTRUCTION TEXT ======== */
+const instructionText = new PIXI.Text('Enter a number:', textStyle);
+instructionText.x = rec.getBounds().x + rectWidth / 2 - instructionText.width / 2;
+instructionText.y = rec.getBounds().y + instructionText.height * 3;
+
+// Calculate the bottom coordinate of the instruction text
+const instructionTextBottom = instructionText.y + instructionText.height + 20;
+
+/* ========== INPUT FIELD ========= */
+// Create a PIXI.Graphics rectangle to simulate an input field
+const inputField = new PIXI.Graphics();
+
+inputField.beginFill(0xFFFFFF, 1);
+inputField.drawRect(instructionText.x, instructionTextBottom, 200, 30);
+inputField.endFill();
+
+// Create an HTML input element for user input
+const inputElement = document.createElement('input');
+inputElement.type = 'number';
+inputElement.style.position = 'absolute';
+// Position the input element right under the instruction text
+inputElement.style.left = `${instructionText.x}px`;
+inputElement.style.top = `${instructionTextBottom}px`;
+inputElement.style.width = `200px`;
+inputElement.style.height = `30px`;
+
+// Add the PIXI text and graphics to the stage
+rec.addChild(instructionText);
+rec.addChild(inputField)
+
+// Add the HTML input element to the document body
+document.body.appendChild(inputElement);
+
+// Handle input change event
+inputElement.addEventListener('input', function () {
+    // Get the number from the input element
+    const inputValue = parseFloat(inputElement.value);
+
+    // Perform further operations with the inputValue
+    console.log('Input Value:', inputValue);
+});
+
 
 /* ============= CRYPTO CHART ============= */
 function createCryptoChart(maxX, maxY) {
@@ -168,7 +217,8 @@ depositText.addEventListener('pointerdown', function () {
     app.stage.addChild(playText);
     app.stage.addChild(timerContainer);
     app.stage.addChild(rocket);
-    app.stage.removeChild(rec)
+    app.stage.removeChild(rec);
+    document.body.removeChild(inputElement);
 });
 
 
