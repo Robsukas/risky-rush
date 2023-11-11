@@ -48,7 +48,7 @@ const style = new PIXI.TextStyle({
 /* ============= TIMER ============= */
 const timerContainer = new PIXI.Container();
 // Create a text object for the timer
-const timerText = new PIXI.Text('10.000', style);
+const timerText = new PIXI.Text('5.00', style);
 timerText.anchor.set(0.5);
 timerContainer.x = app.screen.width / 2;
 timerContainer.y = timerText.height / 2;
@@ -64,30 +64,6 @@ playText.addEventListener('pointerdown', function () {
     alert("SOLD")
 });
 
-startCountdown(roundTime, timerText); // 10 seconds in milliseconds
-function moveRocket() {
-    const tween = gsap.to(rocket, {
-        x: app.screen.width,
-        duration: 10,
-        ease: "none",
-        onComplete: function () {
-            rocket.x = 0;
-            moveRocket();
-        }
-    });
-
-    setInterval(() => {
-        const newY = Math.random() * app.screen.height;
-        const movingUp = newY < rocket.y; // Check if the new Y position is above the current position
-
-        // Flip the rocket vertically when moving up
-        rocket.scale.y = movingUp ? 1 : -1;
-
-        gsap.to(rocket, {y: newY, duration: 0.4, ease: "none"});
-    }, 300); // Change y position every 300 milliseconds
-}
-
-moveRocket();
 
 /* ========= deposit ==========*/
 const rec = new PIXI.Graphics();
@@ -162,15 +138,20 @@ cryptoChart.x = app.screen.width / 2 - cryptoChart.width / 2;
 cryptoChart.y = app.screen.height / 2 - cryptoChart.height / 2;
 
 /* ============= LAYERING ============= */
+app.stage.addChild(cryptoChart);
+app.stage.addChild(playText);
+app.stage.addChild(timerContainer);
+app.stage.addChild(rocket);
 app.stage.addChild(rec)
+
+
 rec.addChild(depositText);
 
 depositText.addEventListener('pointerdown', function () {
-    app.stage.addChild(cryptoChart);
-    app.stage.addChild(playText);
-    app.stage.addChild(timerContainer);
-    app.stage.addChild(rocket);
-    app.stage.removeChild(rec)
+
+    app.stage.removeChild(rec);
+
+    startGame();
 });
 
 
@@ -186,7 +167,6 @@ depositText.addEventListener('pointerdown', function () {
 */
 
 
-startGame();
 
 /* ============= GAME LOGIC FUNCTIONS ============= */
 function resetGame() {
@@ -221,6 +201,15 @@ function moveRocket() {
     });
 
     // y-movement
+        setInterval(() => {
+        const newY = Math.random() * app.screen.height;
+        const movingUp = newY < rocket.y; // Check if the new Y position is above the current position
+
+        // Flip the rocket vertically when moving up
+        rocket.scale.y = movingUp ? 1 : -1;
+
+        gsap.to(rocket, {y: newY, duration: 0.4, ease: "none"});
+    }, 300); // Change y position every 300 milliseconds
     // gsap.to(rocket)
 
     // setInterval(() => {
