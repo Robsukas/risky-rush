@@ -1,12 +1,3 @@
-/*
-*
-*
-*
-============= INITIAL SETUP =============
-*
-*
-*
-*/
 // Create base app
 const app = new PIXI.Application({
     background: '#ede6d5',
@@ -73,6 +64,52 @@ playText.addEventListener('pointerdown', function () {
     alert("SOLD")
 });
 
+startCountdown(roundTime, timerText); // 10 seconds in milliseconds
+function moveRocket() {
+    const tween = gsap.to(rocket, {
+        x: app.screen.width,
+        duration: 10,
+        ease: "none",
+        onComplete: function () {
+            rocket.x = 0;
+            moveRocket();
+        }
+    });
+
+    setInterval(() => {
+        const newY = Math.random() * app.screen.height;
+        const movingUp = newY < rocket.y; // Check if the new Y position is above the current position
+
+        // Flip the rocket vertically when moving up
+        rocket.scale.y = movingUp ? 1 : -1;
+
+        gsap.to(rocket, {y: newY, duration: 0.4, ease: "none"});
+    }, 300); // Change y position every 300 milliseconds
+}
+
+moveRocket();
+
+/* ========= deposit ==========*/
+const rec = new PIXI.Graphics();
+rec.beginFill(0x000000);
+// Calculate the position to center the rectangle
+const rectWidth = 1000;
+const rectHeight = 600;
+const centerX = (app.screen.width - rectWidth) / 2;
+const centerY = (app.screen.height - rectHeight) / 2;
+
+// Draw a rectangle (x, y, width, height)
+rec.drawRect(centerX, centerY, rectWidth, rectHeight);
+rec.endFill();
+
+/* ============= deposit TEXT ============= */
+const depositText = new PIXI.Text('START!', style);
+depositText.x = rec.width / 2 + (depositText.width / 2);
+depositText.y = rec.height - depositText.height;
+depositText.eventMode = 'static';
+depositText.cursor = 'pointer';
+
+
 /* ============= CRYPTO CHART ============= */
 function createCryptoChart(maxX, maxY) {
     const chartContainer = new PIXI.Container();
@@ -125,10 +162,18 @@ cryptoChart.x = app.screen.width / 2 - cryptoChart.width / 2;
 cryptoChart.y = app.screen.height / 2 - cryptoChart.height / 2;
 
 /* ============= LAYERING ============= */
-app.stage.addChild(cryptoChart);
-app.stage.addChild(playText);
-app.stage.addChild(timerContainer);
-app.stage.addChild(rocket);
+app.stage.addChild(rec)
+rec.addChild(depositText);
+
+depositText.addEventListener('pointerdown', function () {
+    app.stage.addChild(cryptoChart);
+    app.stage.addChild(playText);
+    app.stage.addChild(timerContainer);
+    app.stage.addChild(rocket);
+    app.stage.removeChild(rec)
+});
+
+
 
 /*
 *
