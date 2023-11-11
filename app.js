@@ -1,7 +1,9 @@
 (async () => {
     const app = new PIXI.Application();
-    await app.init({ background: '0x1099bb', resizeTo: window, preference: 'webgpu' });
+    await app.init({ background: '0x1099bb', resizeTo: window, preference: 'webgpu', interactive: 'true'});
 
+
+    //app.view.interactive = true;
     // do pixi things
     document.body.appendChild(app.canvas);
 
@@ -17,6 +19,8 @@
     bunny.y = app.screen.height / 2;
 
     app.stage.addChild(bunny);
+
+    bunny.addEventListener("click", function(){ alert("Hello World!"); });
 
     // Listen for animate update
     app.ticker.add((ticker) =>
