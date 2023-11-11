@@ -5,20 +5,20 @@ const app = new PIXI.Application({
 
 document.body.appendChild(app.view);
 
-let player;
+let rocket;
 
-function createPlayer() {
+function createRocket() {
     // create a new Sprite from an image path
-    player = PIXI.Sprite.from("rocket.png");
+    rocket = PIXI.Sprite.from("rocket.png");
     // center the sprite's anchor point
-    player.anchor.set(0.5);
+    rocket.anchor.set(0.5);
     // move the sprite to the center of the screen
-    player.x = app.screen.width / 2;
-    player.y = app.screen.height / 2;
+    rocket.x = 50;
+    rocket.y = app.screen.height / 2;
     // add sprite to stage
-    app.stage.addChild(player);
+    app.stage.addChild(rocket);
 }
-createPlayer();
+createRocket();
 
 // text style
 const style = new PIXI.TextStyle({
@@ -48,11 +48,6 @@ const timerText = new PIXI.Text('10.000', style);
 timerText.anchor.set(0.5);
 timerContainer.addChild(timerText);
 
-// Create a border for the container
-const border = new PIXI.Graphics();
-border.lineStyle(2, 0xFF0000, 1); // Width, color, and alpha of the border
-border.drawRect(-timerText.width / 2, -timerText.height / 2, 200, 100); // x, y, width, height of the border
-timerContainer.addChild(border);
 
 function startCountdown(duration, textElement) {
     var startTime = Date.now();
@@ -84,33 +79,27 @@ playText.addEventListener('pointerdown', function () {
 });
 app.stage.addChild(playText);
 
-// Listen for animate update
-app.ticker.add((delta) => {
-    // delta is 1 if running at 100% performance
-    // creates frame-independent transformation
-    player.rotation += 0.005 * delta;
-});
-
 startCountdown(10000, timerText); // 10 seconds in milliseconds
-const circle = new PIXI.Graphics();
-circle.beginFill(0x66CCFF);
-circle.drawCircle(0, 0, 10);
-circle.x = 50;
-circle.y = app.view.height / 2;
-app.stage.addChild(circle);
-
-function moveCircle(){
-    const tween = gsap.to(circle, {x: app.screen.width, duration: 10, ease: "none", 
+function moveRocket() {
+    const tween = gsap.to(rocket, {
+        x: app.screen.width,
+        duration: 10,
+        ease: "none",
         onComplete: function () {
-            circle.x = 0;
-            moveCircle();
+            rocket.x = 0;
+            moveRocket();
         }
     });
 
     setInterval(() => {
         const newY = Math.random() * app.screen.height;
-        gsap.to(circle, {y: newY, duration: 0.4, ease: "none"});
-    }, 300); // Change y every 1 second here
+        const movingUp = newY < rocket.y; // Check if the new Y position is above the current position
+
+        // Flip the rocket vertically when moving up
+        rocket.scale.y = movingUp ? 1 : -1;
+
+        gsap.to(rocket, {y: newY, duration: 0.4, ease: "none"});
+    }, 300); // Change y position every 300 milliseconds
 }
 
-moveCircle();
+moveRocket();
