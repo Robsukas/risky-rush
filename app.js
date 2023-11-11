@@ -46,6 +46,22 @@ const style = new PIXI.TextStyle({
     align: 'center'
 });
 
+const smallStyle = new PIXI.TextStyle({
+    fontFamily: 'Arial',
+    fontSize: 18,
+    fontStyle: 'italic',
+    fontWeight: 'bold',
+    fill: ['#ffffff', '#00ff99'], // gradient
+    stroke: '#4a1850',
+    strokeThickness: 5,
+    dropShadow: true,
+    dropShadowColor: '#000000',
+    dropShadowBlur: 4,
+    dropShadowAngle: Math.PI / 6,
+    dropShadowDistance: 6,
+    align: 'right'
+});
+
 /* ============= TIMER ============= */
 const timerContainer = new PIXI.Container();
 // Create a text object for the timer
@@ -64,6 +80,31 @@ sellText.cursor = 'pointer';
 sellText.addEventListener('pointerdown', function () {
     alert("SOLD")
 });
+
+/* ============= LEFT SIDE TEXT ============= */
+const leftSideTexts = [];
+
+// Text content for each text element
+const textContents = [
+    '2x',
+    '1.75x',
+    '1.5x',
+    '1.25x',
+    '1x',
+    '0.75x',
+    '0.5x',
+    '0.25x',
+    '0x',
+];
+
+// Create and position each text element
+for (let i = 0; i < textContents.length; i++) {
+    const text = new PIXI.Text(textContents[i], smallStyle);
+    text.anchor.x = 1;
+    text.x = 85; // Adjust the x-coordinate as needed
+    text.y = 85 + i * 49; // Adjust the y-coordinate for vertical spacing
+    leftSideTexts.push(text);
+}
 
 
 /* ========= DEPOSIT CONTAINER ==========*/
@@ -140,10 +181,13 @@ cryptoChart.y = app.screen.height / 2 - cryptoChart.height / 2;
 
 /* ============= LAYERING ============= */
 app.stage.addChild(cryptoChart);
+app.stage.addChild(...leftSideTexts);
 app.stage.addChild(sellText);
 app.stage.addChild(timerContainer);
 app.stage.addChild(rocket);
-app.stage.addChild(rec)
+app.stage.addChild(rec);
+
+
 
 blurGame();
 
@@ -171,16 +215,20 @@ depositText.addEventListener('pointerdown', function () {
 /* ============= GAME LOGIC FUNCTIONS ============= */
 function blurGame() {
     cryptoChart.filters = [blurFilter];
+    leftSideTexts.forEach(text => (text.filters = [blurFilter]));
     rocket.filters = [blurFilter];
     timerContainer.filters = [blurFilter];
     sellText.filters = [blurFilter];
+
 }
 
 function unblurGame() {
     cryptoChart.filters = [];
+    leftSideTexts.forEach(text => (text.filters = []));
     rocket.filters = [];
     timerContainer.filters = [];
     sellText.filters = [];
+
 }
 
 function resetGame() {
