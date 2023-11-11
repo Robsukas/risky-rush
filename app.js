@@ -18,10 +18,7 @@ let currentBet = 0;
 let currentTime = roundTime;
 let lastMultiplier = initialMultipier;
 let currentMultiplier = initialMultipier;
-let gameInterval;
 let isGameRunning = false;
-let xAnimation;
-let yAnimation;
 
 /* ============= ROCKET ============= */
 // create a new Sprite from an image path
@@ -50,6 +47,22 @@ const style = new PIXI.TextStyle({
     align: 'center'
 });
 
+const smallStyle = new PIXI.TextStyle({
+    fontFamily: 'Arial',
+    fontSize: 18,
+    fontStyle: 'italic',
+    fontWeight: 'bold',
+    fill: ['#ffffff', '#00ff99'], // gradient
+    stroke: '#4a1850',
+    strokeThickness: 5,
+    dropShadow: true,
+    dropShadowColor: '#000000',
+    dropShadowBlur: 4,
+    dropShadowAngle: Math.PI / 6,
+    dropShadowDistance: 6,
+    align: 'right'
+});
+
 /* ============= TIMER ============= */
 const timerContainer = new PIXI.Container();
 // Create a text object for the timer
@@ -65,6 +78,32 @@ sellText.x = app.screen.width / 2 - (sellText.width / 2);
 sellText.y = app.screen.height - sellText.height;
 sellText.eventMode = 'static';
 sellText.cursor = 'pointer';
+
+/* ============= LEFT SIDE TEXT ============= */
+const leftSideTexts = [];
+
+// Text content for each text element
+const textContents = [
+    '2x',
+    '1.75x',
+    '1.5x',
+    '1.25x',
+    '1x',
+    '0.75x',
+    '0.5x',
+    '0.25x',
+    '0x',
+];
+
+// Create and position each text element
+for (let i = 0; i < textContents.length; i++) {
+    const text = new PIXI.Text(textContents[i], smallStyle);
+    text.anchor.x = 1;
+    text.x = 85; // Adjust the x-coordinate as needed
+    text.y = 85 + i * 49; // Adjust the y-coordinate for vertical spacing
+    leftSideTexts.push(text);
+}
+
 
 /* ========= DEPOSIT CONTAINER ==========*/
 const rec = new PIXI.Graphics();
@@ -86,6 +125,56 @@ depositText.y = rec.getBounds().y + rectHeight - depositText.height;
 depositText.eventMode = 'static';
 depositText.cursor = 'pointer';
 rec.addChild(depositText);
+
+// Create a PIXI.Text for instructions
+const textStyle = new PIXI.TextStyle({
+    fontFamily: 'Arial',
+    fontSize: 30,
+    fill: 0xFFFFFF,
+});
+
+/* ======== INSTRUCTION TEXT ======== */
+const instructionText = new PIXI.Text('Enter a number:', textStyle);
+instructionText.x = rec.getBounds().x + rectWidth / 2 - instructionText.width / 2;
+instructionText.y = rec.getBounds().y + instructionText.height * 3;
+
+// Calculate the bottom coordinate of the instruction text
+const instructionTextBottom = instructionText.y + instructionText.height + 20;
+
+/* ========== INPUT FIELD ========= */
+// Create a PIXI.Graphics rectangle to simulate an input field
+const inputField = new PIXI.Graphics();
+
+inputField.beginFill(0xFFFFFF, 1);
+inputField.drawRect(instructionText.x, instructionTextBottom, 200, 30);
+inputField.endFill();
+
+// Create an HTML input element for user input
+const inputElement = document.createElement('input');
+inputElement.type = 'number';
+inputElement.style.position = 'absolute';
+// Position the input element right under the instruction text
+inputElement.style.left = `${instructionText.x}px`;
+inputElement.style.top = `${instructionTextBottom}px`;
+inputElement.style.width = `200px`;
+inputElement.style.height = `30px`;
+
+// Add the PIXI text and graphics to the stage
+rec.addChild(instructionText);
+rec.addChild(inputField)
+
+// Add the HTML input element to the document body
+document.body.appendChild(inputElement);
+
+// Handle input change event
+inputElement.addEventListener('input', function () {
+    // Get the number from the input element
+    const inputValue = parseFloat(inputElement.value);
+
+    // Perform further operations with the inputValue
+    console.log('Input Value:', inputValue);
+});
+
 
 /* ============= CRYPTO CHART ============= */
 function createCryptoChart(maxX, maxY) {
@@ -140,6 +229,7 @@ cryptoChart.y = app.screen.height / 2 - cryptoChart.height / 2;
 
 /* ============= LAYERING ============= */
 app.stage.addChild(cryptoChart);
+app.stage.addChild(...leftSideTexts);
 app.stage.addChild(sellText);
 app.stage.addChild(timerContainer);
 app.stage.addChild(rocket);
@@ -149,6 +239,7 @@ blurGame();
 
 depositText.addEventListener('pointerdown', function () {
     rec.visible = false;
+    inputElement.style.display = 'none';
     unblurGame();
 
     startGame();
@@ -170,9 +261,11 @@ sellText.addEventListener('pointerdown', function () {
 */
 
 
+
 /* ============= GAME LOGIC FUNCTIONS ============= */
 function blurGame() {
     cryptoChart.filters = [blurFilter];
+    leftSideTexts.forEach(text => (text.filters = [blurFilter]));
     rocket.filters = [blurFilter];
     timerContainer.filters = [blurFilter];
     sellText.filters = [blurFilter];
@@ -180,6 +273,7 @@ function blurGame() {
 
 function unblurGame() {
     cryptoChart.filters = [];
+    leftSideTexts.forEach(text => (text.filters = []));
     rocket.filters = [];
     timerContainer.filters = [];
     sellText.filters = [];
@@ -193,11 +287,6 @@ function resetGame() {
 
 function startGame() {
     resetGame();
-    // const a = () => {
-    //     console.count()
-    // }
-    // test = app.ticker.add(a);
-    // app.ticker.remove(a);
     isGameRunning = true;
     startCountdown(roundTime, timerText);
     moveRocket();
@@ -205,9 +294,6 @@ function startGame() {
 
 function endGame() {
     isGameRunning = false;
-    console.log("here")
-    // xAnimation.pause();
-    // yAnimation.pause();
     blurGame();
 }
 
@@ -238,7 +324,7 @@ function moveRocket() {
         }
     });
 
-
+    // Add ticker for y movement
     let yTicker = new PIXI.Ticker();
 
     // Set the initial target Y position and interval to update it
@@ -266,7 +352,7 @@ function moveRocket() {
             rocket.y += (targetY - rocket.y) * movementSpeed;
 
             const movingUp = targetY < rocket.y;
-            rocket.scale.y = movingUp ? 1 : -1; // Flip the rocket vertically when moving up
+            rocket.scale.y = movingUp ? 0.5 : -0.5; // Flip the rocket vertically when moving up
         } else {
             yTicker.stop(); // Stop the ticker after the duration or if the game is over
         }
