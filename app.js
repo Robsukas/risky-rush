@@ -1,26 +1,20 @@
+// Create base app
 const app = new PIXI.Application({
     background: '#ede6d5',
     resizeTo: window,
 });
-
 document.body.appendChild(app.view);
 
-let rocket;
+/* ============= ROCKET ============= */
+// create a new Sprite from an image path
+const rocket = PIXI.Sprite.from("rocket.png");
+// center the sprite's anchor point
+rocket.anchor.set(0.5);
+// move the sprite to the center of the screen
+rocket.x = 50;
+rocket.y = app.screen.height / 2;
 
-function createRocket() {
-    // create a new Sprite from an image path
-    rocket = PIXI.Sprite.from("rocket.png");
-    // center the sprite's anchor point
-    rocket.anchor.set(0.5);
-    // move the sprite to the center of the screen
-    rocket.x = 50;
-    rocket.y = app.screen.height / 2;
-    // add sprite to stage
-    app.stage.addChild(rocket);
-}
-createRocket();
-
-// text style
+/* ============= TEXT STYLE ============= */
 const style = new PIXI.TextStyle({
     fontFamily: 'Arial',
     fontSize: 72,
@@ -37,17 +31,15 @@ const style = new PIXI.TextStyle({
     align: 'center'
 });
 
-// Create a container
+/* ============= TIMER ============= */
 const timerContainer = new PIXI.Container();
 timerContainer.x = app.screen.width / 2 + 600;
 timerContainer.y = app.screen.height / 2 - 250;
-app.stage.addChild(timerContainer);
 
 // Create a text object for the timer
 const timerText = new PIXI.Text('10.000', style);
 timerText.anchor.set(0.5);
 timerContainer.addChild(timerText);
-
 
 function startCountdown(duration, textElement) {
     var startTime = Date.now();
@@ -68,7 +60,7 @@ function startCountdown(duration, textElement) {
 }
 
 
-// Add play text
+/* ============= PLAY TEXT ============= */
 const playText = new PIXI.Text('SELL!', style);
 playText.x = app.screen.width / 2 - (playText.width / 2);
 playText.y = app.screen.height - playText.height;
@@ -77,7 +69,6 @@ playText.cursor = 'pointer';
 playText.addEventListener('pointerdown', function () {
     alert("SOLD")
 });
-app.stage.addChild(playText);
 
 startCountdown(10000, timerText); // 10 seconds in milliseconds
 function moveRocket() {
@@ -104,8 +95,7 @@ function moveRocket() {
 
 moveRocket();
 
-// Function to create a line chart
-// Function to create a line chart with grid lines
+/* ============= CRYPTO CHART ============= */
 function createCryptoChart(maxX, maxY) {
     const chartContainer = new PIXI.Container();
 
@@ -148,12 +138,17 @@ function createCryptoChart(maxX, maxY) {
 }
 
 // Set the maximum values for the X and Y axes
-const maxX = 1200;
-const maxY = 600;
+const maxX = app.screen.width - 200;
+const maxY = app.screen.height - 200;
 
 // Add the crypto chart to the stage
 const cryptoChart = createCryptoChart(maxX, maxY);
 cryptoChart.x = app.screen.width / 2 - cryptoChart.width / 2;
 cryptoChart.y = app.screen.height / 2 - cryptoChart.height / 2;
+
+/* ============= LAYERING ============= */
 app.stage.addChild(cryptoChart);
+app.stage.addChild(playText);
+app.stage.addChild(timerContainer);
+app.stage.addChild(rocket);
 
