@@ -18,6 +18,10 @@ let currentBet = 0;
 let currentTime = roundTime;
 let lastMultiplier = initialMultipier;
 let currentMultiplier = initialMultipier;
+let gameInterval;
+let isGameRunning = false;
+let xAnimation;
+let yAnimation;
 
 /* ============= ROCKET ============= */
 // create a new Sprite from an image path
@@ -61,10 +65,6 @@ sellText.x = app.screen.width / 2 - (sellText.width / 2);
 sellText.y = app.screen.height - sellText.height;
 sellText.eventMode = 'static';
 sellText.cursor = 'pointer';
-sellText.addEventListener('pointerdown', function () {
-    alert("SOLD")
-});
-
 
 /* ========= DEPOSIT CONTAINER ==========*/
 const rec = new PIXI.Graphics();
@@ -154,6 +154,9 @@ depositText.addEventListener('pointerdown', function () {
     startGame();
 });
 
+sellText.addEventListener('pointerdown', function () {
+    endGame();
+});
 
 
 /*
@@ -165,7 +168,6 @@ depositText.addEventListener('pointerdown', function () {
 *
 *
 */
-
 
 
 /* ============= GAME LOGIC FUNCTIONS ============= */
@@ -191,66 +193,109 @@ function resetGame() {
 
 function startGame() {
     resetGame();
-    const a = () => {
-        console.count()
-    }
-    test = app.ticker.add(a);
-    app.ticker.remove(a);
+    // const a = () => {
+    //     console.count()
+    // }
+    // test = app.ticker.add(a);
+    // app.ticker.remove(a);
+    isGameRunning = true;
     startCountdown(roundTime, timerText);
     moveRocket();
 }
 
-
+function endGame() {
+    isGameRunning = false;
+    console.log("here")
+    // xAnimation.pause();
+    // yAnimation.pause();
+    blurGame();
+}
 
 function moveRocket() {
-    // x-movement
+    // Reset rocket x
     rocket.x = cryptoChart.x;
-    gsap.to(rocket, {
-        x: maxX + 20,
-        duration: roundTime / 1000,
-        ease: "none",
-        onComplete: () => {
-            // rocket.x = 0;
+    const x1 = rocket.x;
+    const x2 = maxX + 20;
+    let duration = roundTime;
+
+    // Start time
+    let startTime = Date.now();
+
+    // Add ticker for x movement
+    let xTicker = new PIXI.Ticker();
+    xTicker.add(() => {
+        // Current time
+        let currentTime = Date.now();
+
+        // Calculate elapsed time in seconds
+        let elapsedTime = (currentTime - startTime);
+
+        // Update sprite's position
+        if (elapsedTime < duration && isGameRunning) {
+            rocket.x = x1 + (x2 - x1) * (elapsedTime / duration);
+        } else {
+            xTicker.stop(); // Stop the ticker after the duration or if game over
         }
     });
 
-    // y-movement
-        setInterval(() => {
-        const newY = Math.random() * app.screen.height;
-        const movingUp = newY < rocket.y; // Check if the new Y position is above the current position
 
-        // Flip the rocket vertically when moving up
-        rocket.scale.y = movingUp ? 1 : -1;
+    let yTicker = new PIXI.Ticker();
 
-        gsap.to(rocket, {y: newY, duration: 0.4, ease: "none"});
-    }, 300); // Change y position every 300 milliseconds
-    // gsap.to(rocket)
+    // Set the initial target Y position and interval to update it
+    let targetY = Math.random() * app.screen.height;
+    let updateInterval = 150; // Update target every 1000ms (1 second)
+    let lastUpdateTime = Date.now();
 
-    // setInterval(() => {
-    //     const newY = Math.random() * app.screen.height;
-    //     const movingUp = newY < rocket.y; // Check if the new Y position is above the current position
-    //
-    //     // Flip the rocket vertically when moving up
-    //     rocket.scale.y = movingUp ? 1 : -1;
-    //
-    //     gsap.to(rocket, {y: newY, duration: 0.4, ease: "none"});
-    // }, 300); // Change y position every 300 milliseconds
+    yTicker.add(() => {
+        // Current time
+        let currentTime = Date.now();
+
+        // Calculate elapsed time in milliseconds
+        let elapsedTime = (currentTime - startTime);
+
+        // Check if it's time to update the target Y position
+        if (currentTime - lastUpdateTime > updateInterval) {
+            targetY = Math.random() * app.screen.height;
+            lastUpdateTime = currentTime;
+        }
+
+        // Update sprite's position
+        if (elapsedTime < duration && isGameRunning) {
+            // Gradually move towards the target Y position
+            let movementSpeed = 0.05; // Adjust this value for faster or slower movement
+            rocket.y += (targetY - rocket.y) * movementSpeed;
+
+            const movingUp = targetY < rocket.y;
+            rocket.scale.y = movingUp ? 1 : -1; // Flip the rocket vertically when moving up
+        } else {
+            yTicker.stop(); // Stop the ticker after the duration or if the game is over
+        }
+    });
+
+    // Start the tickers
+    xTicker.start();
+    yTicker.start();
 }
 
 function startCountdown(duration, textElement) {
-    var startTime = Date.now();
-    var countdownInterval = setInterval(() => {
-        var elapsedTime = Date.now() - startTime;
-        var remainingTime = Math.max(duration - elapsedTime, 0);
-        var seconds = Math.floor(remainingTime / 1000);
-        var milliseconds = Math.floor((remainingTime % 1000) / 10); // Dividing by 10 to get centiseconds
+    const startTime = Date.now();
+    const countdownInterval = setInterval(() => {
+        if (!isGameRunning) {
+            clearInterval(countdownInterval);
+            return;
+        }
+
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.max(duration - elapsedTime, 0);
+        const seconds = Math.floor(remainingTime / 1000);
+        const milliseconds = Math.floor((remainingTime % 1000) / 10); // Dividing by 10 to get centiseconds
+
+        textElement.text = seconds + '.' + (milliseconds < 10 ? '0' : '') + milliseconds;
 
         if (remainingTime <= 0) {
             clearInterval(countdownInterval);
             textElement.text = '0.000';
-            // Actions when countdown ends
+            endGame();
         }
-
-        textElement.text = seconds + '.' + (milliseconds < 10 ? '0' : '') + milliseconds;
     }, 10); // Updating every 10 milliseconds
 }
