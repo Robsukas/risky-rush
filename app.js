@@ -167,9 +167,10 @@ rec.addChild(inputField)
 document.body.appendChild(inputElement);
 
 // Handle input change event
+let inputValue = 0;
 inputElement.addEventListener('input', function () {
     // Get the number from the input element
-    const inputValue = parseFloat(inputElement.value);
+    inputValue = parseFloat(inputElement.value);
 
     // Perform further operations with the inputValue
     console.log('Input Value:', inputValue);
@@ -240,6 +241,12 @@ blurGame();
 depositText.addEventListener('pointerdown', function () {
     rec.visible = false;
     inputElement.style.display = 'none';
+
+    const depositAmount = new PIXI.Text(`Current Deposit: ${inputValue}`, smallStyle);
+    depositAmount.x = cryptoChart.x;
+    depositAmount.y = timerContainer.y;
+    app.stage.addChild(depositAmount);
+
     unblurGame();
 
     startGame();
