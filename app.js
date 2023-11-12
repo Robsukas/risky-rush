@@ -4,28 +4,121 @@ const app = new PIXI.Application();
 
     // do pixi things
     document.body.appendChild(app.canvas);
-
+    app.stage.interactiveChildren = true;
+    app.stage.interactive = true;
+    console.log(app.stage.isInteractive());
     /* ============= GLOBAL CONSTANTS ============= */
-    const roundTime = 5_000;
-    const initialMoney = 100;
-    const initialMultiplier = 1;
+    const roundTime = 10_000; // in milliseconds
+    const initialMoney = 100; // dollars
+    const initialMultipier = 1;
     const minMultiplier = 0.01;
     const maxMultiplier = 30;
     const blurFilter = new PIXI.BlurFilter();
-    const zoomBlurFilter = new PIXI.filters.ZoomBlurFilter({radius: app.screen.height / 3,
-        strength: 0.08, innerRadius:100});
+    //const zoomBlurFilter = new PIXI.filters.ZoomBlurFilter({radius: app.screen.height / 3, strength: 0.08, innerRadius: 100});
+    //const shockwaveFilter = new PIXI.filters.ShockwaveFilter();
     /* ============= GLOBAL VARIABLES ============= */
     let playerMoney = initialMoney;
     let currentBet = 0;
     let currentTime = roundTime;
-    let lastMultiplier = initialMultiplier;
-    let currentMultiplier = initialMultiplier;
+    let lastMultiplier = initialMultipier;
+    let currentMultiplier = initialMultipier;
     let isGameRunning = false;
+
+    app.stage.sortableChildren = true;
+
+    /* ============= CURSOR ============= */
+
+    const explosionTexture = PIXI.Texture.from('images/exp.png');
+    const cursorTexture = PIXI.Texture.from('images/star.png');
+    const cursorTracker = new PIXI.Sprite(cursorTexture);
+    cursorTracker.anchor.set(0.5);
+    cursorTracker.zIndex = 1000;
+    app.stage.addChild(cursorTracker);
+
+    // Hide the default cursor (optional)
+    app.canvas.style.cursor = 'none';
+
+// Animation logic remains the same
+    let scaleDirection = 1;
+    const maxScale = 1.5;
+    const minScale = 0.5;
+    const scaleSpeed = 0.05;
+    const rotationSpeed = 0.1;
+
+// Create a ticker for the animation loop
+    const ticker = new PIXI.Ticker();
+    ticker.add(() => {
+        // Update scale
+        cursorTracker.scale.x += scaleSpeed * scaleDirection;
+        cursorTracker.scale.y += scaleSpeed * scaleDirection;
+
+        // Reverse direction if limits are reached
+        if (cursorTracker.scale.x > maxScale || cursorTracker.scale.x < minScale) {
+            scaleDirection *= -1;
+        }
+
+        cursorTracker.rotation += rotationSpeed;
+    });
+
+    function createExplosion(x, y) {
+        const explosion = new PIXI.Sprite(explosionTexture);
+        explosion.anchor.set(0.5);
+        explosion.position.set(x, y);
+        explosion.scale.set(0.1); // Start small
+        app.stage.addChild(explosion);
+
+        // Animate the explosion
+        let scale = 0.1;
+        const maxScale = 0.2; // Maximum scale of explosion
+        const scaleSpeed = 0.05; // Speed of scaling up
+
+        const explosionTicker = new PIXI.Ticker();
+        explosionTicker.add(() => {
+            scale += scaleSpeed;
+            explosion.scale.set(scale);
+
+            // Once the explosion reaches max size, remove it
+            if (explosion.scale.x >= maxScale) {
+                explosionTicker.stop();
+                app.stage.removeChild(explosion);
+            }
+        });
+        explosionTicker.start();
+    }
+
+
+
+// Handle mouse click event
+    app.canvas.addEventListener('click', (event) => {
+        const rect = app.canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        // Create an explosion at the click position
+        createExplosion(x, y);
+    });
+
+// Update the cursor sprite position on mouse move
+    app.canvas.addEventListener('mousemove', (event) => {
+        const rect = app.canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        cursorTracker.x = x;
+        cursorTracker.y = y;
+    });
+
+    app.stage.sortableChildren = true;
+
+    ticker.start();
 
     /* ============= ROCKET ============= */
     // create a new Sprite from an image path
     const tex = await PIXI.Assets.load("images/rocket.png");
     const rocket = PIXI.Sprite.from(tex);
+    // create a new Sprite for the rocket path
+    const rocketPath = new PIXI.Graphics();
+
     // center the sprite's anchor point
     rocket.anchor.set(0.5);
     // move the sprite to the center of the screen
@@ -80,18 +173,19 @@ const app = new PIXI.Application();
     const formattedDuration = durationSeconds.toFixed(decimalPlaces);
 
     // Create a text object for the timer
-    const timerText = new PIXI.Text({text: formattedDuration, style});
+    const timerText = new PIXI.Text(formattedDuration, style);
     timerText.anchor.set(0.5);
     timerContainer.x = app.screen.width / 2;
     timerContainer.y = timerText.height / 2;
     timerContainer.addChild(timerText);
 
     /* ============= SELL TEXT ============= */
-    const sellText = new PIXI.Text({text: 'SELL!', style});
+    const sellText = new PIXI.Text('SELL!', style);
     sellText.x = app.screen.width / 2 - (sellText.width / 2);
-    sellText.y = app.screen.height - sellText.height;
+    sellText.y = app.screen.height - sellText.height + 15;
     sellText.eventMode = 'static';
     sellText.cursor = 'pointer';
+    sellText.hitArea = sellText.getLocalBounds();
 
     /* ========= DEPOSIT CONTAINER ==========*/
     const rec = new PIXI.Graphics();
@@ -106,11 +200,13 @@ const app = new PIXI.Application();
     rec.rect(centerX, centerY, rectWidth, rectHeight).fill(0x000000);
 
     /* ============= START TEXT ============= */
-    const depositText = new PIXI.Text({text: 'START!', style});
+    const depositText = new PIXI.Text('START!', style);
     depositText.x = rec.getBounds().x + rectWidth / 2 - depositText.width / 2
     depositText.y = rec.getBounds().y + rectHeight - depositText.height;
     depositText.eventMode = 'static';
     depositText.cursor = 'pointer';
+    depositText.hitArea = sellText.getLocalBounds();
+    rec.addChild(depositText);
 
     // Create a PIXI.Text for instructions
     const textStyle = new PIXI.TextStyle({
@@ -120,12 +216,14 @@ const app = new PIXI.Application();
     });
 
     /* ======== INSTRUCTION TEXT ======== */
-    const instructionText = new PIXI.Text({text: 'Enter a number:', textStyle});
+    const instructionText = new PIXI.Text('Enter a number:', textStyle);
     instructionText.x = rec.getBounds().x + rectWidth / 2 - instructionText.width / 2;
     instructionText.y = rec.getBounds().y + instructionText.height * 3;
-    instructionText.style = textStyle;
 
     let lastWin = new PIXI.Text('Last Win: 0', textStyle);
+    console.log("second")
+    console.log(rec.getBounds().x);
+    console.log(rec.getBounds().y);
     lastWin.x = rec.getBounds().x + rectWidth / 2 - lastWin.width / 2;
     lastWin.y = rec.getBounds().y + lastWin.height * 8;
 
@@ -139,7 +237,6 @@ const app = new PIXI.Application();
     inputField.fill(0xFFFFFF);
     inputField.rect(instructionText.x, instructionTextBottom, 200, 30);
 
-
     // Create an HTML input element for user input
     const inputElement = document.createElement('input');
     inputElement.type = 'number';
@@ -149,8 +246,15 @@ const app = new PIXI.Application();
     inputElement.style.top = `${instructionTextBottom}px`;
     inputElement.style.width = `200px`;
     inputElement.style.height = `30px`;
+
+    // Add the PIXI text and graphics to the stage
+    rec.addChild(instructionText);
+    rec.addChild(inputField);
+    rec.addChild(lastWin);
+
     // Add the HTML input element to the document body
     document.body.appendChild(inputElement);
+    inputElement.setAttribute('required', '');
 
     // Handle input change event
     let inputValue = 0;
@@ -192,11 +296,11 @@ const app = new PIXI.Application();
     cryptoChart.x = app.screen.width / 2 - cryptoChart.width / 2;
     cryptoChart.y = app.screen.height / 2 - cryptoChart.height / 2;
 
-    /* ============= LEFT SIDE TEXT ============= */
-    const leftSideTexts = [];
+    /* ============= MULTIPLIER LABELS ============= */
+    const multiplierLabels = [];
 
-    // Text content for each text element
-    const textContents = [
+// Text content for each multiplier label
+    const multiplierContents = [
         '2x',
         '1.75x',
         '1.5x',
@@ -208,41 +312,59 @@ const app = new PIXI.Application();
         '0x',
     ];
 
-    const totalTexts = textContents.length;
+    const totalMultipliers = multiplierContents.length;
 
-    // Calculate the vertical spacing between texts
-    const verticalSpacing = cryptoChart.height / (totalTexts);
+// Calculate the vertical spacing between multiplier labels
+    const verticalSpacing = cryptoChart.height / (totalMultipliers);
 
-    // Create and position each text element
-    for (let i = 0; i < totalTexts; i++) {
-        const text = new PIXI.Text({text: textContents[i], smallStyle});
-        text.anchor.x = 1;
-        text.x = cryptoChart.x - 10; // Adjust the x-coordinate to the left of the cryptoChart
-        text.y = cryptoChart.y + verticalSpacing * i; // Evenly spaced between top and bottom
-        leftSideTexts.push(text);
+// Create and position each multiplier label on the left side
+    for (let i = 0; i < totalMultipliers; i++) {
+        const label = new PIXI.Text(multiplierContents[i], smallStyle);
+        label.anchor.x = 1;
+        label.x = cryptoChart.x - 10; // Adjust the x-coordinate to the left of the cryptoChart
+        label.y = cryptoChart.y + verticalSpacing * i; // Evenly spaced between top and bottom
+        multiplierLabels.push(label);
+    }
+
+    /* ============= TIME LABELS ============= */
+    const timeLabels = [];
+
+// Total seconds for the time labels
+    const totalSeconds = 10;
+
+// Calculate the horizontal spacing between time labels
+    const horizontalSpacing = cryptoChart.width / totalSeconds;
+
+// Create and position each time label at the bottom of the chart
+    for (let i = 0; i <= totalSeconds; i++) {
+        const timeLabel = new PIXI.Text(`${totalSeconds - i}s`, smallStyle);
+        timeLabel.anchor.x = 0.5;
+        timeLabel.x = cryptoChart.x + horizontalSpacing * i;
+        timeLabel.y = cryptoChart.y + cryptoChart.height - 5; // Adjust the y-coordinate below the chart
+        timeLabels.push(timeLabel);
     }
 
     /* ========= DEPOSIT AMOUNT TO SCREEN ========= */
-    let depositAmount = new PIXI.Text({text: `Current Deposit: `, smallStyle});
+    let depositAmount = new PIXI.Text(`Current Deposit: `, smallStyle);
     depositAmount.x = cryptoChart.x;
     depositAmount.y = timerContainer.y;
 
     /* ============= LAYERING ============= */
     app.stage.addChild(cryptoChart);
-    app.stage.addChild(...leftSideTexts);
+    app.stage.addChild(...multiplierLabels);
+    app.stage.addChild(...timeLabels);
     app.stage.addChild(sellText);
     app.stage.addChild(depositAmount);
     app.stage.addChild(timerContainer);
+    app.stage.addChild(rocketPath);
     app.stage.addChild(rocket);
-    app.stage.addChild(rec)
-    app.stage.addChild(depositText);
-    app.stage.addChild(inputField);
-    app.stage.addChild(instructionText);
-    app.stage.addChild(lastWin);
+    app.stage.addChild(rec);
 
     blurGame();
-
     depositText.addEventListener('pointerdown', function () {
+        if (inputElement.value.trim() === '') {
+            return;
+        }
         rec.visible = false;
         inputElement.style.display = 'none';
 
@@ -260,7 +382,7 @@ const app = new PIXI.Application();
 
     sellText.addEventListener('pointerdown', function () {
         endGame();
-    })
+    });
 
 
     /*
@@ -273,20 +395,24 @@ const app = new PIXI.Application();
     *
     */
 
+
     /* ============= GAME LOGIC FUNCTIONS ============= */
     function blurGame() {
         cryptoChart.filters = [blurFilter];
-        leftSideTexts.forEach(text => (text.filters = [blurFilter]));
+        multiplierLabels.forEach(label => (label.filters = [blurFilter]));
+        timeLabels.forEach(label => (label.filters = [blurFilter]));
         rocket.filters = [blurFilter];
         timerContainer.filters = [blurFilter];
         sellText.filters = [blurFilter];
-        depositAmount.filters = [blurFilter];
+        depositAmount.filters = [blurFilter]
     }
 
     function unblurGame() {
-        cryptoChart.filters = [zoomBlurFilter];
-        leftSideTexts.forEach(text => (text.filters = []));
+        multiplierLabels.forEach(label => (label.filters = []));
+        timeLabels.forEach(label => (label.filters = []));
+        //cryptoChart.filters = [zoomBlurFilter, shockwaveFilter];
         rocket.filters = [];
+        //rocketPath.filters = [zoomBlurFilter];
         timerContainer.filters = [];
         sellText.filters = [];
         depositAmount.filters = [];
@@ -294,8 +420,8 @@ const app = new PIXI.Application();
 
     function resetGame() {
         currentTime = roundTime;
-        lastMultiplier = initialMultiplier;
-        currentMultiplier = initialMultiplier;
+        lastMultiplier = initialMultipier;
+        currentMultiplier = initialMultipier;
     }
 
     function startGame() {
@@ -308,27 +434,32 @@ const app = new PIXI.Application();
     let conf = 0;
     function endGame() {
         isGameRunning = false;
+        rocketPath.clear();
         blurGame();
 
-        app.stage.removeChild(lastWin);
+        rec.removeChild(lastWin);
         conf = 1 + (rocket.y - cryptoChart.y - cryptoChart.height / 2) / -300;
-        lastWin = new PIXI.Text(`Last Win: ${(conf * inputValue).toFixed(2)}     Win Conf: ${conf.toFixed(4)}`, textStyle);
-        lastWin.x = rec.getBounds().x + rectWidth / 2 - lastWin.width / 2;
-        lastWin.y = rec.getBounds().y + lastWin.height * 8;
-        app.stage.addChild(lastWin);
+        lastWin = new PIXI.Text(`Last Win: ${(conf * inputValue).toFixed(2)} Win Conf: ${conf.toFixed(4)}`, textStyle);
+        lastWin.x = 320 + rectWidth / 2 - lastWin.width / 2;
+        lastWin.y = 100.5 + lastWin.height * 8;
+        console.log("first")
+        console.log(rec.getBounds().x);
+        console.log(rec.getBounds().y);
+        rec.addChild(lastWin);
 
         rec.visible = true;
         inputElement.style.display = 'block';
+
     }
 
-
-
     function moveRocket() {
-        //Reset rocket x
+        // Reset rocket x
         rocket.x = cryptoChart.x;
         const x1 = rocket.x;
         const x2 = maxX + 95;
         let duration = roundTime;
+
+        const rocketTrail = [];
 
         // Start time
         let startTime = Date.now();
@@ -344,11 +475,27 @@ const app = new PIXI.Application();
 
             // Update sprite's position
             if (elapsedTime < duration && isGameRunning) {
+                // Update sprite's position
                 rocket.x = x1 + (x2 - x1) * (elapsedTime / duration);
-                // Update zoom blur filter position
-                zoomBlurFilter.center = [rocket.x - rocket.width, rocket.y - rocket.height];
+                // Update filters position
+                //zoomBlurFilter.center = [rocket.x - rocket.width, rocket.y - rocket.height];
+                //shockwaveFilter.center = [rocket.x - rocket.width, rocket.y - rocket.height];
+
+                // Store the rocket position for the trail
+                rocketTrail.push({ x: rocket.x, y: rocket.y });
+
+                // Clear the previous rocket trail
+                rocketPath.clear();
+
+                // Draw the continuous rocket trail
+                //rocketPath.lineStyle(3, 0x000000); // Line color (black), adjust thickness as needed
+                rocketPath.moveTo(rocketTrail[0].x, rocketTrail[0].y);
+
+                for (let i = 1; i < rocketTrail.length; i++) {
+                    rocketPath.lineTo(rocketTrail[i].x, rocketTrail[i].y);
+                }
             } else {
-                xTicker.stop(); //Stop the ticker after the duration or if game over
+                xTicker.stop(); // Stop the ticker after the duration or if game over
             }
         });
 
@@ -357,7 +504,7 @@ const app = new PIXI.Application();
 
         // Set the initial target Y position and interval to update it
         let targetY = Math.random() * app.screen.height;
-        let updateInterval = 175; // Update target every 1000ms (1 second)
+        let updateInterval = 175; // Update target every * ms
         let lastUpdateTime = Date.now();
         // Variable to track the desired rotation
         let targetRotation = 0;
